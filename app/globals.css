@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: #f97316;
+    --primary-dark: #ea580c;
+    --primary-light: #fdba74;
+  }
+
+  * {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Effects */
+  .glass {
+    @apply bg-white/10 backdrop-blur-xl border border-white/20;
+  }
+  
+  .glass-card {
+    @apply bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl 
+           border border-white/20 rounded-2xl shadow-xl;
+  }
+  
+  .glass-card-hover {
+    @apply transition-all duration-300 hover:shadow-2xl hover:border-white/30 
+           hover:scale-[1.02] hover:bg-white/15;
+  }
+
+  /* Status Badges */
+  .badge {
+    @apply px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1;
+  }
+  
+  .badge-pending {
+    @apply bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+  
+  .badge-progress {
+    @apply bg-orange-500/20 text-orange-400 border border-orange-500/30;
+  }
+  
+  .badge-resolved {
+    @apply bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+  
+  .badge-closed {
+    @apply bg-gray-500/20 text-gray-400 border border-gray-500/30;
+  }
+
+  /* Form Styles */
+  .form-input {
+    @apply w-full px-4 py-3 rounded-xl bg-slate-800/50 border border-slate-700 
+           text-white placeholder-slate-500 focus:outline-none focus:border-primary-500 
+           focus:ring-2 focus:ring-primary-500/20 transition-all duration-200;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 
+           text-white font-semibold hover:shadow-lg hover:shadow-primary-500/25 
+           transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 rounded-xl bg-slate-700/50 border border-slate-600 
+           text-white font-semibold hover:bg-slate-700 transition-all duration-300;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-800/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary-500/50 rounded-full hover:bg-primary-500 transition-colors;
+}
