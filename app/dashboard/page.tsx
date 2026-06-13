@@ -45,6 +45,8 @@ const SONIDOS = [
   "/audios/XPMINECRAFT.mp3",
 ];
 
+const SONIDO_BOTAR_CARVEN = "/audios/botarcarven.mp3";
+
 const formatFechaHora = (fechaStr: string) => {
   if (!fechaStr) return "";
   return fechaStr;
@@ -137,10 +139,17 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const playRandomSound = useCallback(() => {
-    const randomIndex = Math.floor(Math.random() * SONIDOS.length);
-    const soundUrl = SONIDOS[randomIndex];
-    console.log("🔊 Reproduciendo sonido:", soundUrl);
+  const playSoundByMotivo = useCallback((motivo: string) => {
+    let soundUrl: string;
+
+    if (motivo && motivo.toLowerCase().trim() === "botar carven") {
+      soundUrl = SONIDO_BOTAR_CARVEN;
+      console.log("🔊 Sonido especial BOTAR CARVEN:", soundUrl);
+    } else {
+      const randomIndex = Math.floor(Math.random() * SONIDOS.length);
+      soundUrl = SONIDOS[randomIndex];
+      console.log("🔊 Sonido aleatorio:", soundUrl);
+    }
 
     if (audioRef.current) {
       audioRef.current.pause();
@@ -160,7 +169,14 @@ export default function DashboardPage() {
       if (newTicketsCount > 0) {
         console.log("🎉 Nuevo ticket detectado!", newTicketsCount);
 
-        playRandomSound();
+        if (lastTicket) {
+          playSoundByMotivo(lastTicket.motivo);
+        } else {
+          const randomIndex = Math.floor(Math.random() * SONIDOS.length);
+          const audio = new Audio(SONIDOS[randomIndex]);
+          audio.volume = 0.7;
+          audio.play().catch((e) => console.log("Error:", e));
+        }
 
         if (newTicketsCount === 1 && lastTicket) {
           const message = `🎫 Nuevo ticket: ${lastTicket.ticket_id} - ${lastTicket.nombre}`;
@@ -176,7 +192,7 @@ export default function DashboardPage() {
         setTimeout(() => setShowNotification(false), 5000);
       }
     },
-    [playRandomSound, documentHidden],
+    [playSoundByMotivo, documentHidden],
   );
 
   const loadData = useCallback(
