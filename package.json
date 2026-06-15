@@ -13,6 +13,7 @@
     "autoprefixer": "^10.5.0",
     "axios": "^1.7.9",
     "bcryptjs": "^3.0.3",
+    "block-inspect": "^1.3.1",
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "jsonwebtoken": "^9.0.3",

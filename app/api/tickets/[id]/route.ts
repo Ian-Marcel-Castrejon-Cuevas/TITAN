@@ -67,7 +67,6 @@ export async function PUT(
     const { id: ticketId } = await params;
     const body = await request.json();
 
-    // Detectar qué tipo de actualización es
     const { estado, plataforma, motivo } = body;
 
     let usuario = "Sistema";
@@ -88,11 +87,7 @@ export async function PUT(
 
     const pool = await getSqlConnection();
 
-    // Caso 1: Actualización de estado
     if (estado !== undefined) {
-      console.log("🔧 Usuario que cambia estado:", usuario);
-      console.log("🔧 Nuevo estado:", estado);
-
       let updateQuery = `
         UPDATE tickets 
         SET estado = @estado, 
@@ -144,26 +139,18 @@ export async function PUT(
         `);
 
       return NextResponse.json({ success: true });
-    }
-
-    // Caso 2: Actualización de plataforma y/o motivo
-    else if (plataforma !== undefined || motivo !== undefined) {
-      console.log("🔧 Usuario que modifica ticket:", usuario);
-      console.log("🔧 Nueva plataforma:", plataforma);
-      console.log("🔧 Nuevo motivo:", motivo);
-
-      // Construir la consulta dinámicamente según los campos que llegan
+    } else if (plataforma !== undefined || motivo !== undefined) {
       let updateFields = [];
-      const request = pool.request();
+      const dbRequest = pool.request();
 
       if (plataforma !== undefined) {
-        updateFields.push("plataforma = @plataforma");
-        request.input("plataforma", plataforma);
+        updateFields.push(`plataforma = @plataforma`);
+        dbRequest.input("plataforma", plataforma);
       }
 
       if (motivo !== undefined) {
-        updateFields.push("motivo = @motivo");
-        request.input("motivo", motivo);
+        updateFields.push(`motivo = @motivo`);
+        dbRequest.input("motivo", motivo);
       }
 
       if (updateFields.length === 0) {
@@ -173,7 +160,6 @@ export async function PUT(
         );
       }
 
-      // Agregar fecha de actualización
       updateFields.push("fecha_actualizacion = GETDATE()");
 
       const updateQuery = `
@@ -182,13 +168,9 @@ export async function PUT(
         WHERE ticket_id = @ticket_id
       `;
 
-      request.input("ticket_id", ticketId);
-      await request.query(updateQuery);
+      dbRequest.input("ticket_id", ticketId);
+      await dbRequest.query(updateQuery);
 
-      // No agregamos nota automática porque ya se agregó una nota manual desde el frontend
-      // con la explicación del cambio
-
-      // Obtener el ticket actualizado para devolverlo
       const updatedTicket = await pool.request().input("ticket_id", ticketId)
         .query(`
           SELECT 
@@ -212,14 +194,92 @@ export async function PUT(
       });
     } else {
       return NextResponse.json(
-        { success: false, error: "No se especificó qué actualizar" },
+        { success: false, error: "No se especifico que actualizar" },
         { status: 400 },
       );
     }
   } catch (error) {
-    console.error("Error al actualizar ticket:", error);
+    console.error("Error en PUT:", error);
     return NextResponse.json(
       { success: false, error: "Error al actualizar ticket" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id: ticketId } = await params;
+
+    let usuario = "Sistema";
+    const authHeader = request.headers.get("authorization");
+
+    if (authHeader) {
+      try {
+        const token = authHeader.replace("Bearer ", "");
+        const base64Payload = token.split(".")[1];
+        const payload = JSON.parse(
+          Buffer.from(base64Payload, "base64").toString(),
+        );
+        usuario = payload.nombre_completo || payload.usuario_ch || "Usuario";
+      } catch (e) {
+        console.error("Error decodificando token:", e);
+      }
+    }
+
+    const pool = await getSqlConnection();
+
+    const ticketResult = await pool
+      .request()
+      .input("ticket_id", ticketId)
+      .query(`SELECT estado FROM tickets WHERE ticket_id = @ticket_id`);
+
+    if (ticketResult.recordset.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Ticket no encontrado" },
+        { status: 404 },
+      );
+    }
+
+    const ticket = ticketResult.recordset[0];
+
+    if (ticket.estado === "cerrado") {
+      return NextResponse.json(
+        { success: false, error: "No se pueden eliminar tickets cerrados" },
+        { status: 403 },
+      );
+    }
+
+    await pool
+      .request()
+      .input("ticket_id", ticketId)
+      .input("content", `Ticket eliminado por: ${usuario}`)
+      .input("author", usuario).query(`
+        INSERT INTO ticket_notes (ticket_id, note_type, content, author, tags, fecha_creacion)
+        VALUES (@ticket_id, 'eliminacion', @content, @author, 'eliminado', GETDATE())
+      `);
+
+    await pool
+      .request()
+      .input("ticket_id", ticketId)
+      .query(`DELETE FROM ticket_notes WHERE ticket_id = @ticket_id`);
+
+    await pool
+      .request()
+      .input("ticket_id", ticketId)
+      .query(`DELETE FROM tickets WHERE ticket_id = @ticket_id`);
+
+    return NextResponse.json({
+      success: true,
+      message: "Ticket eliminado correctamente",
+    });
+  } catch (error) {
+    console.error("Error al eliminar ticket:", error);
+    return NextResponse.json(
+      { success: false, error: "Error al eliminar ticket" },
       { status: 500 },
     );
   }

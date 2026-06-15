@@ -19,13 +19,12 @@ import {
   MessageSquare,
   Send,
   UserCheck,
-  Edit2,
   Save,
   X,
+  Briefcase,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-// Mismos datos que en el registro
 const plataformas = [
   "Active Directory (AD)",
   "Problema con el equipo",
@@ -221,8 +220,8 @@ export default function TicketDetailPage() {
   const [newNote, setNewNote] = useState("");
   const [sendingNote, setSendingNote] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     plataforma: "",
@@ -238,12 +237,10 @@ export default function TicketDetailPage() {
     }
   }, [ticketId]);
 
-  // Actualizar motivos disponibles cuando cambia la plataforma en edición
   useEffect(() => {
     if (isEditing && editForm.plataforma) {
       const nuevosMotivos = getMotivosPorPlataforma(editForm.plataforma);
       setMotivosDisponibles(nuevosMotivos);
-      // Si el motivo actual no está en la nueva lista de motivos, limpiarlo
       if (editForm.motivo && !nuevosMotivos.includes(editForm.motivo)) {
         setEditForm((prev) => ({ ...prev, motivo: "" }));
       }
@@ -257,12 +254,10 @@ export default function TicketDetailPage() {
       if (response.success && response.ticket) {
         setTicket(response.ticket);
         setNotes(response.notes || []);
-        // Inicializar el formulario de edición
         setEditForm({
           plataforma: response.ticket.plataforma,
           motivo: response.ticket.motivo,
         });
-        // Inicializar motivos disponibles para la plataforma actual
         setMotivosDisponibles(
           getMotivosPorPlataforma(response.ticket.plataforma),
         );
@@ -296,12 +291,10 @@ export default function TicketDetailPage() {
       });
 
       if (response.ok) {
-        console.log(
-          `📢 Notificación creada para departamento: ${ticket.cartera}`,
-        );
+        console.log(`Notificacion creada para departamento: ${ticket.cartera}`);
       }
     } catch (error) {
-      console.error("Error al crear notificación:", error);
+      console.error("Error al crear notificacion:", error);
     }
   };
 
@@ -325,7 +318,7 @@ export default function TicketDetailPage() {
       if (isAdmin && ticket) {
         await createNotification(
           "note",
-          `📝 Nueva nota en ticket ${ticketId}: ${newNote.substring(0, 100)}`,
+          `Nueva nota en ticket ${ticketId}: ${newNote.substring(0, 100)}`,
         );
       }
 
@@ -362,7 +355,7 @@ export default function TicketDetailPage() {
       if (ticket) {
         await createNotification(
           "status",
-          `🔄 Ticket ${ticketId} cambió a estado: ${statusText}`,
+          `Ticket ${ticketId} cambio a estado: ${statusText}`,
         );
       }
 
@@ -378,7 +371,6 @@ export default function TicketDetailPage() {
   const handleEditTicket = () => {
     setIsEditing(true);
     setEditNote("");
-    // Resetear motivos disponibles
     if (ticket) {
       setMotivosDisponibles(getMotivosPorPlataforma(ticket.plataforma));
     }
@@ -387,7 +379,6 @@ export default function TicketDetailPage() {
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditNote("");
-    // Restaurar valores originales
     if (ticket) {
       setEditForm({
         plataforma: ticket.plataforma,
@@ -408,7 +399,6 @@ export default function TicketDetailPage() {
       return;
     }
 
-    // Verificar si hubo cambios
     if (
       editForm.plataforma === ticket?.plataforma &&
       editForm.motivo === ticket?.motivo
@@ -419,24 +409,22 @@ export default function TicketDetailPage() {
 
     setSavingEdit(true);
     try {
-      // Guardar los cambios del ticket
       await api.updateTicket(ticketId, {
         plataforma: editForm.plataforma,
         motivo: editForm.motivo,
       });
 
-      // Crear nota explicando los cambios
       const cambios = [];
       if (editForm.plataforma !== ticket?.plataforma) {
         cambios.push(
-          `Plataforma: "${ticket?.plataforma}" a "${editForm.plataforma}"`,
+          `Plataforma: "${ticket?.plataforma}" -> "${editForm.plataforma}"`,
         );
       }
       if (editForm.motivo !== ticket?.motivo) {
-        cambios.push(`Motivo: "${ticket?.motivo}" a "${editForm.motivo}"`);
+        cambios.push(`Motivo: "${ticket?.motivo}" -> "${editForm.motivo}"`);
       }
 
-      const notaContenido = `MODIFICACIÓN ADMINISTRATIVA\n\nCambios realizados:\n${cambios.join("\n")}\n\nMotivo del cambio:\n${editNote}`;
+      const notaContenido = `MODIFICACION ADMINISTRATIVA\n\nCambios realizados:\n${cambios.join("\n")}\n\nMotivo del cambio:\n${editNote}\n\nModificado por: ${user?.nombre || user?.ch || "Administrador"}`;
 
       await api.addNote(ticketId, {
         content: notaContenido,
@@ -445,7 +433,6 @@ export default function TicketDetailPage() {
         tags: "modificacion,admin",
       });
 
-      // Crear notificación del cambio
       await createNotification(
         "modificacion",
         `Ticket ${ticketId} fue modificado por ${user?.nombre || "Administrador"}:\n${cambios.join(", ")}`,
@@ -454,12 +441,41 @@ export default function TicketDetailPage() {
       toast.success("Ticket modificado exitosamente");
       setIsEditing(false);
       setEditNote("");
-      loadTicket(); // Recargar para mostrar los cambios
+      loadTicket();
     } catch (error) {
       console.error("Error al modificar ticket:", error);
       toast.error("Error al modificar el ticket");
     } finally {
       setSavingEdit(false);
+    }
+  };
+
+  const handleDeleteTicket = async () => {
+    if (!ticket) return;
+
+    const confirmDelete = window.confirm(
+      `Esta seguro de que desea eliminar el ticket ${ticket?.ticket_id}?\n\n` +
+        `Esta accion no se puede deshacer y eliminara todas las notas asociadas.`,
+    );
+
+    if (!confirmDelete) return;
+
+    setDeleting(true);
+    try {
+      const response = await api.deleteTicket(ticketId);
+      if (response.success) {
+        toast.success("Ticket eliminado correctamente");
+        setTimeout(() => {
+          router.push("/tickets");
+        }, 1500);
+      } else {
+        toast.error(response.message || "Error al eliminar ticket");
+      }
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      toast.error("Error al eliminar el ticket");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -479,6 +495,11 @@ export default function TicketDetailPage() {
 
   if (!ticket) return null;
 
+  const showDeleteButton =
+    ticket.estado === "abierto" ||
+    (isAdmin &&
+      (ticket.estado === "en_proceso" || ticket.estado === "resuelto"));
+
   return (
     <div className="flex flex-col h-screen">
       <div className="flex flex-1 overflow-hidden">
@@ -486,7 +507,6 @@ export default function TicketDetailPage() {
 
         <main className="flex-1 ml-72 overflow-y-auto">
           <div className="p-8">
-            {/* Back Button */}
             <button
               onClick={() => router.back()}
               className="flex items-center gap-2 text-white/60 hover:text-white mb-6 transition-colors"
@@ -496,9 +516,7 @@ export default function TicketDetailPage() {
             </button>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Main Content */}
               <div className="lg:col-span-2 space-y-6">
-                {/* Ticket Header */}
                 <div className="glass-card p-6">
                   <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
                     <div className="flex items-center gap-3">
@@ -513,52 +531,54 @@ export default function TicketDetailPage() {
                       </div>
                     </div>
 
-                    {/* Botones de ADMIN */}
-                    {isAdmin && (
-                      <div className="flex gap-2">
-                        {/* Botón de editar ticket - SOLO ADMIN */}
-                        {!isEditing && (
-                          <button
-                            onClick={handleEditTicket}
-                            className="px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors flex items-center gap-2"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                            Editar Ticket
-                          </button>
-                        )}
+                    <div className="flex gap-2 flex-wrap">
+                      {!isEditing && isAdmin && (
+                        <button
+                          onClick={handleEditTicket}
+                          className="px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
+                        >
+                          Editar Ticket
+                        </button>
+                      )}
 
-                        {/* Botones de cambio de estado */}
-                        {ticket.estado === "abierto" && (
-                          <button
-                            onClick={() => handleChangeStatus("en_proceso")}
-                            disabled={updating}
-                            className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors disabled:opacity-50"
-                          >
-                            {updating ? "Procesando..." : "Tomar en Proceso"}
-                          </button>
-                        )}
-                        {ticket.estado === "en_proceso" && (
-                          <button
-                            onClick={() => handleChangeStatus("resuelto")}
-                            disabled={updating}
-                            className="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-50"
-                          >
-                            {updating
-                              ? "Procesando..."
-                              : "Marcar como Resuelto"}
-                          </button>
-                        )}
-                        {ticket.estado === "resuelto" && (
-                          <button
-                            onClick={() => handleChangeStatus("cerrado")}
-                            disabled={updating}
-                            className="px-4 py-2 rounded-lg bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 transition-colors disabled:opacity-50"
-                          >
-                            {updating ? "Procesando..." : "Cerrar Ticket"}
-                          </button>
-                        )}
-                      </div>
-                    )}
+                      {showDeleteButton && (
+                        <button
+                          onClick={handleDeleteTicket}
+                          disabled={deleting}
+                          className="px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                        >
+                          {deleting ? "Eliminando..." : "Eliminar Ticket"}
+                        </button>
+                      )}
+
+                      {isAdmin && ticket.estado === "abierto" && (
+                        <button
+                          onClick={() => handleChangeStatus("en_proceso")}
+                          disabled={updating}
+                          className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors disabled:opacity-50"
+                        >
+                          {updating ? "Procesando..." : "Tomar en Proceso"}
+                        </button>
+                      )}
+                      {isAdmin && ticket.estado === "en_proceso" && (
+                        <button
+                          onClick={() => handleChangeStatus("resuelto")}
+                          disabled={updating}
+                          className="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-50"
+                        >
+                          {updating ? "Procesando..." : "Marcar como Resuelto"}
+                        </button>
+                      )}
+                      {isAdmin && ticket.estado === "resuelto" && (
+                        <button
+                          onClick={() => handleChangeStatus("cerrado")}
+                          disabled={updating}
+                          className="px-4 py-2 rounded-lg bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 transition-colors disabled:opacity-50"
+                        >
+                          {updating ? "Procesando..." : "Cerrar Ticket"}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div
@@ -568,7 +588,6 @@ export default function TicketDetailPage() {
                   </div>
                 </div>
 
-                {/* Ticket Details */}
                 <div className="glass-card p-6">
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <FileText className="w-5 h-5 text-primary-400" />
@@ -618,7 +637,6 @@ export default function TicketDetailPage() {
                       </div>
                     </div>
 
-                    {/* Campos editables: Plataforma y Motivo */}
                     <div>
                       <p className="text-white/40 text-sm mb-2">Plataforma</p>
                       {isEditing ? (
@@ -656,13 +674,12 @@ export default function TicketDetailPage() {
                     </div>
 
                     <div>
-                      <p className="text-white/40 text-sm mb-2">Descripción</p>
+                      <p className="text-white/40 text-sm mb-2">Descripcion</p>
                       <div className="p-4 rounded-lg bg-slate-800/50 text-white whitespace-pre-wrap">
                         {ticket.descripcion}
                       </div>
                     </div>
 
-                    {/* Formulario de edición - Nota obligatoria */}
                     {isEditing && (
                       <div className="mt-4 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
                         <label className="text-yellow-400 text-sm font-medium mb-2 block">
@@ -673,7 +690,7 @@ export default function TicketDetailPage() {
                           onChange={(e) => setEditNote(e.target.value)}
                           rows={3}
                           className="w-full px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-white focus:outline-none focus:border-yellow-500 resize-none"
-                          placeholder="Explica por qué estás realizando estos cambios..."
+                          placeholder="Explica por que estas realizando estos cambios..."
                         />
                         <div className="flex gap-2 mt-3">
                           <button
@@ -702,7 +719,6 @@ export default function TicketDetailPage() {
                   </div>
                 </div>
 
-                {/* Notes Section */}
                 <div className="glass-card p-6">
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <MessageSquare className="w-5 h-5 text-primary-400" />
@@ -712,7 +728,7 @@ export default function TicketDetailPage() {
                   <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
                     {notes.length === 0 ? (
                       <p className="text-white/40 text-center py-8">
-                        No hay notas aún
+                        No hay notas aun
                       </p>
                     ) : (
                       notes.map((note, index) => (
@@ -732,7 +748,7 @@ export default function TicketDetailPage() {
                               </span>
                               {note.tags?.includes("modificacion") && (
                                 <span className="px-2 py-0.5 rounded text-xs bg-yellow-500/20 text-yellow-400">
-                                  Modificación
+                                  Modificacion
                                 </span>
                               )}
                             </div>
@@ -748,7 +764,6 @@ export default function TicketDetailPage() {
                     )}
                   </div>
 
-                  {/* Add Note */}
                   <div className="border-t border-white/10 pt-4">
                     <textarea
                       value={newNote}
@@ -775,11 +790,10 @@ export default function TicketDetailPage() {
                 </div>
               </div>
 
-              {/* Sidebar Info */}
               <div className="space-y-6">
                 <div className="glass-card p-6">
                   <h3 className="text-lg font-semibold text-white mb-4">
-                    Información
+                    Informacion
                   </h3>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-white/60 text-sm">
@@ -801,7 +815,6 @@ export default function TicketDetailPage() {
                         </span>
                       </div>
                     )}
-                    {/* Fechas de estados */}
                     {ticket.fecha_procesado && (
                       <div className="flex items-center gap-2 text-white/60 text-sm">
                         <Clock className="w-4 h-4 text-orange-400" />
@@ -838,6 +851,3 @@ export default function TicketDetailPage() {
     </div>
   );
 }
-
-// Necesitas importar Briefcase si no está importado
-import { Briefcase } from "lucide-react";

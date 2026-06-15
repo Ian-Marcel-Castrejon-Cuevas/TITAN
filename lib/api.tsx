@@ -111,6 +111,14 @@ class API {
     });
   }
 
+  async deleteTicket(
+    ticketId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request(`/api/tickets/${ticketId}`, {
+      method: "DELETE",
+    });
+  }
+
   async getStats(): Promise<{ success: boolean; stats: any }> {
     return this.request("/api/tickets/stats");
   }
