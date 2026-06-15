@@ -253,7 +253,6 @@ export default function SoportePage() {
 
       <main className="flex-1 ml-72 overflow-y-auto">
         <div className="p-8">
-          {/* Header */}
           <div className="mb-8">
             <div className="flex justify-between items-start flex-wrap gap-4">
               <div>
@@ -276,7 +275,6 @@ export default function SoportePage() {
             </div>
           </div>
 
-          {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {statCards.map((stat, index) => (
               <div
@@ -289,7 +287,6 @@ export default function SoportePage() {
             ))}
           </div>
 
-          {/* Search and Filter */}
           <div className="glass-card p-4 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
@@ -323,7 +320,6 @@ export default function SoportePage() {
             </div>
           </div>
 
-          {/* Tickets Table */}
           <div className="glass-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -425,7 +421,6 @@ export default function SoportePage() {
         </div>
       </main>
 
-      {/* Modal de Ticket */}
       {showModal && selectedTicket && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -454,7 +449,6 @@ export default function SoportePage() {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Información del Ticket */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <p className="text-white/40 text-sm">Nodo</p>
@@ -486,7 +480,6 @@ export default function SoportePage() {
                 </div>
               </div>
 
-              {/* Notas */}
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-primary-400" />
@@ -520,7 +513,6 @@ export default function SoportePage() {
                   )}
                 </div>
 
-                {/* Agregar Nota */}
                 <div className="border-t border-white/10 pt-4">
                   <textarea
                     value={newNote}

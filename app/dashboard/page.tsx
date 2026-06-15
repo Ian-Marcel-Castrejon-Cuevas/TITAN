@@ -144,11 +144,9 @@ export default function DashboardPage() {
 
     if (motivo && motivo.toLowerCase().trim() === "botar carven") {
       soundUrl = SONIDO_BOTAR_CARVEN;
-      console.log("🔊 Sonido especial BOTAR CARVEN:", soundUrl);
     } else {
       const randomIndex = Math.floor(Math.random() * SONIDOS.length);
       soundUrl = SONIDOS[randomIndex];
-      console.log("🔊 Sonido aleatorio:", soundUrl);
     }
 
     if (audioRef.current) {
@@ -167,8 +165,6 @@ export default function DashboardPage() {
   const showNewTicketNotification = useCallback(
     (newTicketsCount: number, lastTicket?: Ticket) => {
       if (newTicketsCount > 0) {
-        console.log("🎉 Nuevo ticket detectado!", newTicketsCount);
-
         if (lastTicket) {
           playSoundByMotivo(lastTicket.motivo);
         } else {
@@ -200,9 +196,6 @@ export default function DashboardPage() {
       try {
         const ticketsRes = await api.getTickets();
         const tickets = ticketsRes.tickets || [];
-        console.log(
-          `📊 Tickets: ${tickets.length}, Anterior: ${lastTicketCount}`,
-        );
 
         if (lastTicketCount > 0 && tickets.length > lastTicketCount) {
           const newTicketsCount = tickets.length - lastTicketCount;
@@ -255,7 +248,6 @@ export default function DashboardPage() {
     hace30Dias.setDate(hoy.getDate() - 30);
     setFechaFin(hoy.toISOString().split("T")[0]);
     setFechaInicio(hace30Dias.toISOString().split("T")[0]);
-    console.log("📋 Dashboard listo");
   }, [isAdmin, authLoading, router]);
 
   useEffect(() => {

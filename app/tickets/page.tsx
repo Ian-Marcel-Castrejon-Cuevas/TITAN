@@ -140,7 +140,6 @@ export default function TicketsPage() {
   >(new Set());
   const [lastFetchTime, setLastFetchTime] = useState<Date>(new Date());
 
-  // Actualizar el Set de tickets con notificaciones cuando cambian las notificaciones
   useEffect(() => {
     const ticketIds = new Set<string>();
     notifications.forEach((notif) => {
@@ -149,49 +148,34 @@ export default function TicketsPage() {
       }
     });
     setTicketsWithNotifications(ticketIds);
-
-    // Log para depuración
-    if (notifications.length > 0) {
-      console.log(
-        `📢 Tickets con notificaciones: ${Array.from(ticketIds).join(", ")}`,
-      );
-    }
   }, [notifications]);
 
-  // Recargar tickets periódicamente para mantenerlos actualizados
   useEffect(() => {
     if (!authLoading) {
       loadTickets();
     }
   }, [authLoading]);
 
-  // Polling adicional para recargar tickets y notificaciones cuando la pestaña está activa
   useEffect(() => {
     if (!user?.ch || authLoading) return;
 
-    // Configurar intervalo para recargar datos periódicamente
     const intervalId = setInterval(() => {
       if (document.visibilityState === "visible") {
-        // Recargar tickets y notificaciones cuando la pestaña está visible
         loadTickets();
         fetchNotifications();
         setLastFetchTime(new Date());
       }
-    }, 30000); // Cada 30 segundos
+    }, 30000);
 
-    // Recargar cuando la pestaña vuelve a ser visible
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        console.log("🔄 Pestaña activada, recargando datos...");
         loadTickets();
         fetchNotifications();
         setLastFetchTime(new Date());
       }
     };
 
-    // Recargar cuando la ventana recibe foco
     const handleWindowFocus = () => {
-      console.log("🔄 Ventana enfocada, recargando datos...");
       loadTickets();
       fetchNotifications();
       setLastFetchTime(new Date());
@@ -242,7 +226,6 @@ export default function TicketsPage() {
   });
 
   const handleTicketClick = async (ticketId: string) => {
-    // Obtener las notificaciones no leídas para este ticket
     const notificationsForTicket = notifications.filter(
       (n) => n.ticket_id === ticketId,
     );
@@ -251,7 +234,6 @@ export default function TicketsPage() {
       const notificationIds = notificationsForTicket.map((n) => n.id);
       await markAsRead(notificationIds);
 
-      // Recargar notificaciones después de marcar como leídas
       setTimeout(() => {
         fetchNotifications();
       }, 500);
@@ -338,7 +320,6 @@ export default function TicketsPage() {
             </div>
           </div>
 
-          {/* Filtros */}
           <div className="glass-card p-4 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
@@ -353,7 +334,6 @@ export default function TicketsPage() {
               </div>
             </div>
 
-            {/* Filtros de estado */}
             <div className="flex gap-2 mt-4 flex-wrap">
               {["all", "abierto", "en_proceso", "resuelto", "cerrado"].map(
                 (status) => (
@@ -373,7 +353,6 @@ export default function TicketsPage() {
             </div>
           </div>
 
-          {/* Tickets List */}
           <div className="space-y-4">
             {filteredTickets.length === 0 ? (
               <div className="glass-card p-12 text-center">
@@ -415,7 +394,6 @@ export default function TicketsPage() {
                       }
                     `}
                     >
-                      {/* Efecto de brillo para tickets con notas nuevas */}
                       {hasNewNote && (
                         <>
                           <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/0 via-yellow-500/10 to-yellow-500/0 animate-pulse-fast" />
@@ -440,7 +418,6 @@ export default function TicketsPage() {
                                 <XCircle className="w-5 h-5 text-gray-400" />
                               )}
                             </div>
-                            {/* Indicador de nota nueva */}
                             {hasNewNote && (
                               <>
                                 <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-yellow-500 animate-ping" />

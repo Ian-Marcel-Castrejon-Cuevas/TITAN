@@ -1,4 +1,3 @@
-// app/components/SecurityWrapper.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -13,14 +12,14 @@ export default function SecurityWrapper({
       .then((blockInspect) => {
         const defaultBlock = blockInspect.default || blockInspect;
         defaultBlock({
-          disableContextMenu: true, // Desactiva clic derecho
-          disableDevToolsShortcut: true, // Bloquea F12 y atajos
-          disableSelection: true, // Desactiva selección de texto
-          disableCopy: true, // Bloquea copia
-          disableCut: true, // Bloquea cortar
-          disablePaste: false, // Permite pegar (útil para formularios)
-          redirectOnInspect: false, // No redirige
-          debug: false, // No logs
+          disableContextMenu: true,
+          disableDevToolsShortcut: true,
+          disableSelection: true,
+          disableCopy: true,
+          disableCut: true,
+          disablePaste: false,
+          redirectOnInspect: false,
+          debug: false,
           onInspectAttempt: () => {
             console.warn("Intento de inspección bloqueado");
           },

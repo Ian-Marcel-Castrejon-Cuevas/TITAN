@@ -106,7 +106,7 @@ class API {
     data: { plataforma: string; motivo: string },
   ): Promise<{ success: boolean; ticket: Ticket }> {
     return this.request(`/api/tickets/${ticketId}`, {
-      method: "PUT", // Cambiar de PATCH a PUT
+      method: "PUT",
       body: JSON.stringify(data),
     });
   }

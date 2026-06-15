@@ -20,7 +20,6 @@ export function ProfilePhoto({
     return nombre.trim()[0].toUpperCase();
   };
 
-  // Si hay foto, mostrarla
   if (fotoBase64) {
     return (
       <div
@@ -38,7 +37,6 @@ export function ProfilePhoto({
     );
   }
 
-  // Fallback: iniciales
   return (
     <div
       className="rounded-full bg-gradient-to-r from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0"

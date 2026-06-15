@@ -1,18 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getSqlConnection } from '@/lib/db_sqlserver';
+import { NextRequest, NextResponse } from "next/server";
+import { getSqlConnection } from "@/lib/db_sqlserver";
 
 export async function POST(request: NextRequest) {
   try {
     const { fechaInicio, fechaFin } = await request.json();
-    
-    console.log('Fechas recibidas:', { fechaInicio, fechaFin });
-    
+
     const pool = await getSqlConnection();
-    
-    const result = await pool.request()
-      .input('fechaInicio', fechaInicio)
-      .input('fechaFin', fechaFin)
-      .query(`
+
+    const result = await pool
+      .request()
+      .input("fechaInicio", fechaInicio)
+      .input("fechaFin", fechaFin).query(`
         SELECT 
           t.ticket_id, 
           t.ch, 
@@ -50,19 +48,17 @@ export async function POST(request: NextRequest) {
         WHERE CAST(t.fecha_creacion AS DATE) BETWEEN @fechaInicio AND @fechaFin
         ORDER BY t.fecha_creacion DESC
       `);
-    
-    console.log('Tickets encontrados:', result.recordset.length);
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       tickets: result.recordset,
-      total: result.recordset.length
+      total: result.recordset.length,
     });
   } catch (error) {
-    console.error('Error al generar reporte:', error);
+    console.error("Error al generar reporte:", error);
     return NextResponse.json(
-      { success: false, error: 'Error al generar reporte' },
-      { status: 500 }
+      { success: false, error: "Error al generar reporte" },
+      { status: 500 },
     );
   }
 }

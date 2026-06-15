@@ -28,7 +28,6 @@ export function generateTicketId(): string {
   return `TKT-${timestamp}-${random}`;
 }
 
-// Función para obtener foto de empleado por CH
 export async function getEmpleadoFoto(ch: string) {
   const pool = await getSqlConnection();
   const result = await pool

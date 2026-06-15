@@ -35,11 +35,9 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Obtener el CH del usuario
   const userCh =
     user?.ch && user.ch !== "undefined" && user.ch !== "null" ? user.ch : null;
 
-  // Hook para obtener la foto
   const { fotoBase64, cargando } = useEmpleadoFoto(userCh || undefined);
 
   const getInitials = (name: string) => {
@@ -92,7 +90,6 @@ export function Sidebar() {
         ${isCollapsed ? "w-20" : "w-72"}`}
     >
       <div className="flex flex-col h-full">
-        {/* Logo Area */}
         <div
           className={`p-6 border-b border-white/10 ${isCollapsed ? "px-4" : ""}`}
         >
@@ -116,13 +113,11 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* User Info Card */}
         <div
           className={`mx-4 mt-6 p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-secondary-500/10 border border-white/10 ${isCollapsed ? "flex justify-center" : ""}`}
         >
           <div className="flex items-center gap-3">
             <div className="relative flex-shrink-0">
-              {/* Foto de perfil desde la base de datos */}
               {!cargando ? (
                 <ProfilePhoto
                   nombre={user?.nombre}
@@ -136,14 +131,12 @@ export function Sidebar() {
                 />
               )}
 
-              {/* Badge de administrador */}
               {isAdmin && (
                 <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center z-10">
                   <Shield className="w-3 h-3 text-white" />
                 </div>
               )}
 
-              {/* Indicador de estado (conectado) */}
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-900" />
             </div>
 
@@ -164,7 +157,6 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* Botón colapsar */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="absolute -right-3 top-24 w-6 h-6 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-all duration-300 shadow-lg z-50"
@@ -172,7 +164,6 @@ export function Sidebar() {
           {isCollapsed ? "→" : "←"}
         </button>
 
-        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           <p
             className={`text-xs font-semibold text-white/40 uppercase tracking-wider ${isCollapsed ? "text-center" : "px-3 py-2"}`}
@@ -201,7 +192,6 @@ export function Sidebar() {
                 `}
                 title={isCollapsed ? item.label : ""}
               >
-                {/* EFECTO DE PARPADEO AMARILLO */}
                 {shouldBlink && (
                   <>
                     <div className="absolute inset-0 bg-yellow-500/30 animate-pulse-fast" />
@@ -246,7 +236,6 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Footer Actions */}
         <div className="p-4 border-t border-white/10 space-y-2">
           <button
             onClick={handleLogout}
@@ -266,7 +255,6 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Estilos para animaciones */}
       <style jsx>{`
         @keyframes pulse-fast {
           0%,

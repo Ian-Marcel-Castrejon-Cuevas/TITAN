@@ -7,8 +7,6 @@ export async function POST(request: NextRequest) {
   try {
     const { usuario_ch, password } = await request.json();
 
-    console.log("📝 Login intento para usuario:", usuario_ch);
-
     if (!usuario_ch || !password) {
       return NextResponse.json(
         { error: "Usuario y contraseña son requeridos" },
@@ -31,8 +29,6 @@ export async function POST(request: NextRequest) {
         { status: response.status },
       );
     }
-
-    console.log("✅ Login exitoso para:", usuario_ch);
 
     return NextResponse.json({
       success: true,

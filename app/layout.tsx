@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/hooks/useAuth";
 import { NotificationProvider } from "@/context/NotificationContext";
-import SecurityWrapper from "@/components/SecurityWrapper"; // ← Cambia esta línea
+import SecurityWrapper from "@/components/SecurityWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 

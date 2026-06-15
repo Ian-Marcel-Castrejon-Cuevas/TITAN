@@ -620,7 +620,6 @@ export default function RegistroPage() {
               </div>
             )}
 
-            {/* Steps Indicator */}
             <div className="mb-8">
               <div className="flex items-center justify-between">
                 {steps.map((step, index) => (
@@ -664,7 +663,6 @@ export default function RegistroPage() {
               </div>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="glass-card p-8">
               {currentStep === 1 && (
                 <div className="space-y-6 animate-fade-in">
@@ -816,7 +814,6 @@ export default function RegistroPage() {
                 </div>
               )}
 
-              {/* Navigation Buttons */}
               <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
                 {currentStep > 1 && (
                   <button

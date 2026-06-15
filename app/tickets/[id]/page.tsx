@@ -289,10 +289,6 @@ export default function TicketDetailPage() {
           created_by: user?.nombre || user?.ch || "Sistema",
         }),
       });
-
-      if (response.ok) {
-        console.log(`Notificacion creada para departamento: ${ticket.cartera}`);
-      }
     } catch (error) {
       console.error("Error al crear notificacion:", error);
     }

@@ -126,7 +126,6 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Background decorativo */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/20 rounded-full blur-3xl animate-pulse-glow" />
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary-500/20 rounded-full blur-3xl animate-pulse-glow" />
@@ -150,7 +149,6 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="form-label">
