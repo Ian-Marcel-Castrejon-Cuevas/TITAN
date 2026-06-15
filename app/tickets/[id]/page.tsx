@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Footer } from "@/components/layout/Footer";
+import { CustomDropdown } from "@/components/ui/CustomDropdown";
 import { api, Ticket, TicketNote } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -18,8 +19,127 @@ import {
   MessageSquare,
   Send,
   UserCheck,
+  Edit2,
+  Save,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
+
+// Mismos datos que en el registro
+const plataformas = [
+  "Active Directory (AD)",
+  "Problema con el equipo",
+  "Carven",
+  "Nuxiba Host",
+  "Nuxiba Sitio",
+  "Intranet",
+  "Cyber",
+  "Ccc Uno",
+  "Otro",
+];
+
+const motivosActiveDirectory = [
+  "Bloqueo de usuario",
+  "Cuenta sin Aplicativos",
+  "Restablecimiento de Contraseña",
+  "Usuario Deshabilitado",
+  "Cambio de Cartera",
+  "Equipo Deshabilitado",
+  "Corrección de Datos",
+  "Alta de usuario o validación",
+  "Otros",
+];
+
+const motivosProblemaEquipo = [
+  "Movimiento de Equipo",
+  "Equipo Congelado",
+  "Problemas con Audio",
+  "Problemas con Software",
+  "Equipo lento",
+  "Equipo sin Red",
+  "Solicitud Consumible",
+  "Reacomodo de Cableado",
+  "Fallas en Monitor o proyección",
+  "Problemas con Cableado",
+  "Otros",
+];
+
+const motivosCarven = [
+  "Botar Carven",
+  "Cambio de contraseña",
+  "Desbloqueo de Carven",
+  "Asignar producto",
+  "Quitar producto",
+  "Agregar lista de trabajo individual",
+  "Levantar carven 1",
+  "Levantar carven 2",
+  "Levantar carven 3",
+  "Otros",
+];
+
+const motivosNuxibaHost = [
+  "Cambio de contraseña",
+  "Reasignación de grupo",
+  "Asignación manual",
+  "Autorización de transferencia",
+  "Bloqueo de campañas",
+  "Fallo de audio",
+  "Bloqueo de calificación",
+  "Cierre forzoso de sesión",
+  "Otros",
+];
+
+const motivosNuxibaSitio = [
+  "Cambio de contraseña",
+  "Reasignación de grupo",
+  "Asignación manual",
+  "Autorización de transferencia",
+  "Bloqueo de campañas",
+  "Fallo de audio",
+  "Bloqueo de calificación",
+  "Cierre forzoso de sesión",
+  "Otros",
+];
+
+const motivosIntranet = [
+  "Asignar cartera",
+  "Borrar publicación",
+  "Error de página",
+  "Otros",
+];
+
+const motivosCyber = ["Sin Acceso", "Otros"];
+
+const motivosCCC = [
+  "Bloqueo de campañas",
+  "Fallo de audio",
+  "Bloqueo de calificación",
+  "Cierre forzoso de sesión",
+  "Otros",
+];
+
+const getMotivosPorPlataforma = (plataforma: string): string[] => {
+  switch (plataforma) {
+    case "Active Directory (AD)":
+      return motivosActiveDirectory;
+    case "Problema con el equipo":
+      return motivosProblemaEquipo;
+    case "Carven":
+      return motivosCarven;
+    case "Nuxiba Host":
+      return motivosNuxibaHost;
+    case "Nuxiba Sitio":
+      return motivosNuxibaSitio;
+    case "Intranet":
+      return motivosIntranet;
+    case "Cyber":
+      return motivosCyber;
+    case "Ccc Uno":
+      return motivosCCC;
+    default:
+      return ["Otro"];
+  }
+};
 
 const formatFechaHora = (fechaStr: string) => {
   if (!fechaStr) return "";
@@ -102,11 +222,33 @@ export default function TicketDetailPage() {
   const [sendingNote, setSendingNote] = useState(false);
   const [updating, setUpdating] = useState(false);
 
+  // Estados para edición
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    plataforma: "",
+    motivo: "",
+  });
+  const [editNote, setEditNote] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [motivosDisponibles, setMotivosDisponibles] = useState<string[]>([]);
+
   useEffect(() => {
     if (ticketId) {
       loadTicket();
     }
   }, [ticketId]);
+
+  // Actualizar motivos disponibles cuando cambia la plataforma en edición
+  useEffect(() => {
+    if (isEditing && editForm.plataforma) {
+      const nuevosMotivos = getMotivosPorPlataforma(editForm.plataforma);
+      setMotivosDisponibles(nuevosMotivos);
+      // Si el motivo actual no está en la nueva lista de motivos, limpiarlo
+      if (editForm.motivo && !nuevosMotivos.includes(editForm.motivo)) {
+        setEditForm((prev) => ({ ...prev, motivo: "" }));
+      }
+    }
+  }, [editForm.plataforma, isEditing]);
 
   const loadTicket = async () => {
     try {
@@ -115,6 +257,15 @@ export default function TicketDetailPage() {
       if (response.success && response.ticket) {
         setTicket(response.ticket);
         setNotes(response.notes || []);
+        // Inicializar el formulario de edición
+        setEditForm({
+          plataforma: response.ticket.plataforma,
+          motivo: response.ticket.motivo,
+        });
+        // Inicializar motivos disponibles para la plataforma actual
+        setMotivosDisponibles(
+          getMotivosPorPlataforma(response.ticket.plataforma),
+        );
       } else {
         toast.error("Ticket no encontrado");
         router.push("/tickets");
@@ -130,25 +281,27 @@ export default function TicketDetailPage() {
 
   const createNotification = async (type: string, message: string) => {
     if (!ticket) return;
-    
+
     try {
-      const response = await fetch('/api/notifications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           departamento: ticket.cartera,
           ticket_id: ticketId,
           type: type,
           message: message,
-          created_by: user?.nombre || user?.ch || 'Sistema'
-        })
+          created_by: user?.nombre || user?.ch || "Sistema",
+        }),
       });
-      
+
       if (response.ok) {
-        console.log(`📢 Notificación creada para departamento: ${ticket.cartera}`);
+        console.log(
+          `📢 Notificación creada para departamento: ${ticket.cartera}`,
+        );
       }
     } catch (error) {
-      console.error('Error al crear notificación:', error);
+      console.error("Error al crear notificación:", error);
     }
   };
 
@@ -161,7 +314,7 @@ export default function TicketDetailPage() {
     setSendingNote(true);
     try {
       const authorName = user?.nombre || "Usuario";
-      
+
       await api.addNote(ticketId, {
         content: newNote,
         note_type: "comentario",
@@ -171,8 +324,8 @@ export default function TicketDetailPage() {
 
       if (isAdmin && ticket) {
         await createNotification(
-          'note',
-          `📝 Nueva nota en ticket ${ticketId}: ${newNote.substring(0, 100)}`
+          "note",
+          `📝 Nueva nota en ticket ${ticketId}: ${newNote.substring(0, 100)}`,
         );
       }
 
@@ -208,8 +361,8 @@ export default function TicketDetailPage() {
 
       if (ticket) {
         await createNotification(
-          'status',
-          `🔄 Ticket ${ticketId} cambió a estado: ${statusText}`
+          "status",
+          `🔄 Ticket ${ticketId} cambió a estado: ${statusText}`,
         );
       }
 
@@ -219,6 +372,94 @@ export default function TicketDetailPage() {
       toast.error("Error al cambiar estado");
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleEditTicket = () => {
+    setIsEditing(true);
+    setEditNote("");
+    // Resetear motivos disponibles
+    if (ticket) {
+      setMotivosDisponibles(getMotivosPorPlataforma(ticket.plataforma));
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditNote("");
+    // Restaurar valores originales
+    if (ticket) {
+      setEditForm({
+        plataforma: ticket.plataforma,
+        motivo: ticket.motivo,
+      });
+      setMotivosDisponibles(getMotivosPorPlataforma(ticket.plataforma));
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editNote.trim()) {
+      toast.error("Debes escribir una nota explicando el motivo del cambio");
+      return;
+    }
+
+    if (!editForm.plataforma || !editForm.motivo) {
+      toast.error("La plataforma y el motivo son obligatorios");
+      return;
+    }
+
+    // Verificar si hubo cambios
+    if (
+      editForm.plataforma === ticket?.plataforma &&
+      editForm.motivo === ticket?.motivo
+    ) {
+      toast.error("No se detectaron cambios");
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      // Guardar los cambios del ticket
+      await api.updateTicket(ticketId, {
+        plataforma: editForm.plataforma,
+        motivo: editForm.motivo,
+      });
+
+      // Crear nota explicando los cambios
+      const cambios = [];
+      if (editForm.plataforma !== ticket?.plataforma) {
+        cambios.push(
+          `Plataforma: "${ticket?.plataforma}" a "${editForm.plataforma}"`,
+        );
+      }
+      if (editForm.motivo !== ticket?.motivo) {
+        cambios.push(`Motivo: "${ticket?.motivo}" a "${editForm.motivo}"`);
+      }
+
+      const notaContenido = `MODIFICACIÓN ADMINISTRATIVA\n\nCambios realizados:\n${cambios.join("\n")}\n\nMotivo del cambio:\n${editNote}`;
+
+      await api.addNote(ticketId, {
+        content: notaContenido,
+        note_type: "modificacion",
+        author: user?.nombre || "Administrador",
+        tags: "modificacion,admin",
+      });
+
+      // Crear notificación del cambio
+      await createNotification(
+        "modificacion",
+        `Ticket ${ticketId} fue modificado por ${user?.nombre || "Administrador"}:\n${cambios.join(", ")}`,
+      );
+
+      toast.success("Ticket modificado exitosamente");
+      setIsEditing(false);
+      setEditNote("");
+      loadTicket(); // Recargar para mostrar los cambios
+    } catch (error) {
+      console.error("Error al modificar ticket:", error);
+      toast.error("Error al modificar el ticket");
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -272,9 +513,21 @@ export default function TicketDetailPage() {
                       </div>
                     </div>
 
-                    {/* Solo ADMIN puede ver botones de cambio de estado */}
+                    {/* Botones de ADMIN */}
                     {isAdmin && (
                       <div className="flex gap-2">
+                        {/* Botón de editar ticket - SOLO ADMIN */}
+                        {!isEditing && (
+                          <button
+                            onClick={handleEditTicket}
+                            className="px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors flex items-center gap-2"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            Editar Ticket
+                          </button>
+                        )}
+
+                        {/* Botones de cambio de estado */}
                         {ticket.estado === "abierto" && (
                           <button
                             onClick={() => handleChangeStatus("en_proceso")}
@@ -363,17 +616,43 @@ export default function TicketDetailPage() {
                           {ticket.cartera}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-white/40 text-sm">Plataforma</p>
+                    </div>
+
+                    {/* Campos editables: Plataforma y Motivo */}
+                    <div>
+                      <p className="text-white/40 text-sm mb-2">Plataforma</p>
+                      {isEditing ? (
+                        <CustomDropdown
+                          label="Plataforma"
+                          options={plataformas}
+                          value={editForm.plataforma}
+                          onChange={(value) =>
+                            setEditForm({ ...editForm, plataforma: value })
+                          }
+                          icon={<Briefcase className="w-4 h-4" />}
+                        />
+                      ) : (
                         <p className="text-white font-medium">
                           {ticket.plataforma}
                         </p>
-                      </div>
+                      )}
                     </div>
 
                     <div>
                       <p className="text-white/40 text-sm mb-2">Motivo</p>
-                      <p className="text-white">{ticket.motivo}</p>
+                      {isEditing ? (
+                        <CustomDropdown
+                          label="Motivo"
+                          options={motivosDisponibles}
+                          value={editForm.motivo}
+                          onChange={(value) =>
+                            setEditForm({ ...editForm, motivo: value })
+                          }
+                          icon={<AlertCircle className="w-4 h-4" />}
+                        />
+                      ) : (
+                        <p className="text-white">{ticket.motivo}</p>
+                      )}
                     </div>
 
                     <div>
@@ -382,6 +661,44 @@ export default function TicketDetailPage() {
                         {ticket.descripcion}
                       </div>
                     </div>
+
+                    {/* Formulario de edición - Nota obligatoria */}
+                    {isEditing && (
+                      <div className="mt-4 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                        <label className="text-yellow-400 text-sm font-medium mb-2 block">
+                          * Nota explicativa del cambio (obligatoria)
+                        </label>
+                        <textarea
+                          value={editNote}
+                          onChange={(e) => setEditNote(e.target.value)}
+                          rows={3}
+                          className="w-full px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-white focus:outline-none focus:border-yellow-500 resize-none"
+                          placeholder="Explica por qué estás realizando estos cambios..."
+                        />
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={handleSaveEdit}
+                            disabled={savingEdit}
+                            className="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors flex items-center gap-2 disabled:opacity-50"
+                          >
+                            {savingEdit ? (
+                              <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin" />
+                            ) : (
+                              <Save className="w-4 h-4" />
+                            )}
+                            Guardar Cambios
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={savingEdit}
+                            className="px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors flex items-center gap-2"
+                          >
+                            <X className="w-4 h-4" />
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -401,7 +718,11 @@ export default function TicketDetailPage() {
                       notes.map((note, index) => (
                         <div
                           key={index}
-                          className="p-4 rounded-lg bg-slate-800/30 border border-white/5"
+                          className={`p-4 rounded-lg border ${
+                            note.tags?.includes("modificacion")
+                              ? "bg-yellow-500/5 border-yellow-500/30"
+                              : "bg-slate-800/30 border-white/5"
+                          }`}
                         >
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-2">
@@ -409,6 +730,11 @@ export default function TicketDetailPage() {
                               <span className="text-white font-medium text-sm">
                                 {note.author}
                               </span>
+                              {note.tags?.includes("modificacion") && (
+                                <span className="px-2 py-0.5 rounded text-xs bg-yellow-500/20 text-yellow-400">
+                                  Modificación
+                                </span>
+                              )}
                             </div>
                             <span className="text-white/30 text-xs">
                               {formatFechaHora(note.timestamp)}
@@ -512,3 +838,6 @@ export default function TicketDetailPage() {
     </div>
   );
 }
+
+// Necesitas importar Briefcase si no está importado
+import { Briefcase } from "lucide-react";

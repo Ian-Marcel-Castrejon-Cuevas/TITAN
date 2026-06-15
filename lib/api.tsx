@@ -101,6 +101,16 @@ class API {
     });
   }
 
+  async updateTicket(
+    ticketId: string,
+    data: { plataforma: string; motivo: string },
+  ): Promise<{ success: boolean; ticket: Ticket }> {
+    return this.request(`/api/tickets/${ticketId}`, {
+      method: "PUT", // Cambiar de PATCH a PUT
+      body: JSON.stringify(data),
+    });
+  }
+
   async getStats(): Promise<{ success: boolean; stats: any }> {
     return this.request("/api/tickets/stats");
   }
