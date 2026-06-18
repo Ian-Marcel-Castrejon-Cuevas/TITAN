@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { CustomDropdown } from "@/components/ui/CustomDropdown";
 import { api } from "@/lib/api";
@@ -204,6 +204,8 @@ const motivosProblemaEquipo = [
 
 const motivosCarven = [
   "Botar Carven",
+  "Reiniciar Carven1",
+  "Reiniciar Carven2",
   "Cambio de contraseña",
   "Desbloqueo de Carven",
   "Asignar producto",
@@ -308,6 +310,72 @@ async function ejecutarBorrarCarven() {
   }
 }
 
+async function ejecutarReiniciarCarven1(): Promise<{
+  success: boolean;
+  message: string;
+  restarted?: boolean;
+  botarCarven?: boolean;
+  status?: string;
+}> {
+  try {
+    const response = await fetch("/api/restart-carven1", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      console.warn("Advertencia al reiniciar Carven1:", data.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error en REINICIAR CARVEN1:", error);
+    return {
+      success: false,
+      message: "Error al reiniciar Carven1",
+      restarted: false,
+      botarCarven: false,
+    };
+  }
+}
+
+async function ejecutarReiniciarCarven2(): Promise<{
+  success: boolean;
+  message: string;
+  restarted?: boolean;
+  botarCarven?: boolean;
+  status?: string;
+}> {
+  try {
+    const response = await fetch("/api/restart-carven2", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      console.warn("Advertencia al reiniciar Carven2:", data.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error en REINICIAR CARVEN2:", error);
+    return {
+      success: false,
+      message: "Error al reiniciar Carven2",
+      restarted: false,
+      botarCarven: false,
+    };
+  }
+}
+
 const isValidCHOrSpecialUser = (username: string): boolean => {
   if (!username) return false;
   if (specialUsers.includes(username)) return true;
@@ -351,6 +419,7 @@ const isValidNodo = (nodo: string): boolean => {
 export default function RegistroPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const progressRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [ticketId, setTicketId] = useState("");
@@ -359,6 +428,11 @@ export default function RegistroPage() {
   const [chError, setChError] = useState("");
   const [nodoError, setNodoError] = useState("");
   const [canSubmit, setCanSubmit] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState("");
+  const [showProgress, setShowProgress] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const [formData, setFormData] = useState({
     ch: "",
     nombre: "",
@@ -371,6 +445,17 @@ export default function RegistroPage() {
   });
 
   const [motivosDisponibles, setMotivosDisponibles] = useState<string[]>([]);
+
+  const scrollToProgress = () => {
+    setTimeout(() => {
+      if (progressRef.current) {
+        progressRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }, 100);
+  };
 
   useEffect(() => {
     if (user?.departamento) {
@@ -440,6 +525,12 @@ export default function RegistroPage() {
     }
   }, [currentStep]);
 
+  useEffect(() => {
+    if (showProgress) {
+      scrollToProgress();
+    }
+  }, [showProgress]);
+
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -500,6 +591,112 @@ export default function RegistroPage() {
     setCurrentStep(currentStep - 1);
   };
 
+  const handleCarvenRestart = async (motivo: string, ticketCode: string) => {
+    setShowProgress(true);
+    setIsProcessing(true);
+    let progressValue = 0;
+
+    const messages = [
+      { progress: 10, message: "Iniciando proceso de reinicio..." },
+      { progress: 25, message: "Deteniendo servicios de Carven..." },
+      { progress: 40, message: "Cerrando sesiones activas..." },
+      { progress: 55, message: "Reiniciando Carven..." },
+      { progress: 70, message: "Verificando servicios..." },
+      { progress: 85, message: "Validando conexión..." },
+      { progress: 95, message: "Finalizando proceso..." },
+    ];
+
+    const updateProgress = (value: number) => {
+      const currentMessage = messages.find((m) => m.progress === value);
+      if (currentMessage) {
+        setProgressMessage(currentMessage.message);
+      }
+      setProgress(value);
+    };
+
+    try {
+      progressValue = 10;
+      updateProgress(progressValue);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      let result;
+      if (motivo === "Reiniciar Carven1") {
+        result = await ejecutarReiniciarCarven1();
+      } else if (motivo === "Reiniciar Carven2") {
+        result = await ejecutarReiniciarCarven2();
+      }
+
+      progressValue = 60;
+      updateProgress(progressValue);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      if (result && result.success) {
+        progressValue = 70;
+        updateProgress(progressValue);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        if (result.botarCarven) {
+          progressValue = 85;
+          setProgressMessage("Ejecutando Botar Carven...");
+          setProgress(progressValue);
+          await new Promise((resolve) => setTimeout(resolve, 400));
+        }
+
+        progressValue = 90;
+        setProgressMessage("Cerrando ticket automáticamente...");
+        setProgress(progressValue);
+
+        await api.changeStatus(ticketCode, "cerrado");
+
+        progressValue = 100;
+        setProgressMessage("¡Proceso completado exitosamente!");
+        setProgress(progressValue);
+
+        if (result.restarted === false) {
+          toast.success("✓ Carven está funcionando correctamente", {
+            duration: 3000,
+          });
+        } else if (result.botarCarven) {
+          toast.success(
+            "✓ Carven reiniciado y Botar Carven ejecutado exitosamente",
+            {
+              duration: 3000,
+            },
+          );
+        } else {
+          toast.error("⚠️ Carven reiniciado, pero Botar Carven falló", {
+            duration: 3000,
+          });
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      } else {
+        throw new Error(result?.message || "Error al reiniciar Carven");
+      }
+
+      setSuccess(true);
+      setTicketId(ticketCode);
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    } catch (error) {
+      console.error("Error en el proceso:", error);
+      toast.error("Error al procesar el reinicio de Carven");
+      try {
+        await api.changeStatus(ticketCode, "cerrado");
+        toast.success("El ticket se ha cerrado automáticamente");
+      } catch (closeError) {
+        console.error("Error al cerrar ticket:", closeError);
+      }
+    } finally {
+      setShowProgress(false);
+      setIsProcessing(false);
+      setProgress(0);
+      setProgressMessage("");
+
+      router.push("/tickets");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -512,34 +709,41 @@ export default function RegistroPage() {
     setLoading(true);
 
     try {
-      if (formData.motivo === "Botar Carven") {
-        await ejecutarBorrarCarven();
-      }
-
       const ticketData = {
         ...formData,
         creado_por: user?.ch || formData.ch,
       };
 
       const response = await api.createTicket(ticketData);
-      setTicketId(response.ticketCode);
+      const ticketCode = response.ticketCode;
 
-      if (formData.motivo === "Botar Carven") {
-        await api.changeStatus(response.ticketCode, "cerrado");
+      if (
+        formData.motivo === "Reiniciar Carven1" ||
+        formData.motivo === "Reiniciar Carven2"
+      ) {
+        await handleCarvenRestart(formData.motivo, ticketCode);
+      } else {
+        if (formData.motivo === "Botar Carven") {
+          await ejecutarBorrarCarven();
+          await api.changeStatus(ticketCode, "cerrado");
+        }
+
+        setTicketId(ticketCode);
+        setSuccess(true);
+        toast.success("¡Ticket registrado exitosamente!", {
+          icon: "🎉",
+          duration: 3000,
+        });
+
+        setTimeout(() => {
+          router.push("/tickets");
+        }, 2000);
       }
-
-      setSuccess(true);
-      toast.success("¡Ticket registrado exitosamente!", {
-        icon: "🎉",
-        duration: 3000,
-      });
-
-      setTimeout(() => {
-        router.push("/tickets");
-      }, 2000);
     } catch (error) {
       console.error("Error:", error);
       toast.error("Error al registrar ticket");
+      setLoading(false);
+    } finally {
       setLoading(false);
     }
   };
@@ -582,7 +786,7 @@ export default function RegistroPage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
           <div className="container mx-auto px-4 py-8 max-w-5xl">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg mb-4 animate-float">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg mb-4 animate-float">
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
@@ -592,7 +796,7 @@ export default function RegistroPage() {
                 Registra tu solicitud de manera rápida y sencilla
               </p>
               {user?.departamento && (
-                <p className="text-primary-400 text-sm mt-2">
+                <p className="text-orange-400 text-sm mt-2">
                   Cartera asignada: {getDepartamentoActual()}
                 </p>
               )}
@@ -620,6 +824,45 @@ export default function RegistroPage() {
               </div>
             )}
 
+            {showProgress && (
+              <div
+                ref={progressRef}
+                className="mb-6 p-6 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30 animate-fade-in"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center animate-spin-slow">
+                    <Loader2 className="w-5 h-5 text-orange-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white font-semibold">
+                      Procesando reinicio de Carven...
+                    </p>
+                    <p className="text-white/60 text-sm mt-1">
+                      {progressMessage || "Preparando proceso"}
+                    </p>
+                  </div>
+                  <span className="text-2xl font-bold text-orange-400">
+                    {progress}%
+                  </span>
+                </div>
+
+                <div className="relative w-full h-3 bg-slate-700/50 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between mt-3">
+                  <span className="text-xs text-white/30">Iniciando</span>
+                  <span className="text-xs text-white/30">Reiniciando</span>
+                  <span className="text-xs text-white/30">Finalizando</span>
+                </div>
+              </div>
+            )}
+
             <div className="mb-8">
               <div className="flex items-center justify-between">
                 {steps.map((step, index) => (
@@ -628,7 +871,7 @@ export default function RegistroPage() {
                       <div
                         className={`w-12 h-12 rounded-full flex items-center justify-center relative z-10 transition-all duration-300 ${
                           currentStep >= step.number
-                            ? "bg-gradient-to-r from-primary-500 to-primary-600 shadow-lg shadow-primary-500/25"
+                            ? "bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg shadow-orange-500/25"
                             : "bg-slate-700"
                         }`}
                       >
@@ -653,7 +896,7 @@ export default function RegistroPage() {
                       <div
                         className={`absolute top-5 left-1/2 w-full h-0.5 transition-all duration-300 ${
                           currentStep > step.number
-                            ? "bg-primary-500"
+                            ? "bg-orange-500"
                             : "bg-slate-700"
                         }`}
                       />
@@ -680,6 +923,7 @@ export default function RegistroPage() {
                           placeholder="Ej: CH12345 o usuario autorizado"
                           className={`form-input ${chError ? "border-red-500 focus:border-red-500" : ""}`}
                           required
+                          disabled={isProcessing}
                         />
                         {buscandoUsuario && (
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -737,6 +981,7 @@ export default function RegistroPage() {
                       placeholder="Nodo entre 2000 y 2400"
                       className={`form-input ${nodoError ? "border-red-500 focus:border-red-500" : ""}`}
                       required
+                      disabled={isProcessing}
                     />
                     {nodoError ? (
                       <p className="text-red-400 text-xs mt-1">{nodoError}</p>
@@ -773,6 +1018,7 @@ export default function RegistroPage() {
                     value={formData.plataforma}
                     onChange={(value) => updateField("plataforma", value)}
                     icon={<Briefcase className="w-4 h-4" />}
+                    disabled={isProcessing}
                   />
 
                   <CustomDropdown
@@ -781,6 +1027,7 @@ export default function RegistroPage() {
                     value={formData.puesto}
                     onChange={(value) => updateField("puesto", value)}
                     icon={<Briefcase className="w-4 h-4" />}
+                    disabled={isProcessing}
                   />
                 </div>
               )}
@@ -793,6 +1040,7 @@ export default function RegistroPage() {
                     value={formData.motivo}
                     onChange={(value) => updateField("motivo", value)}
                     icon={<AlertCircle className="w-4 h-4" />}
+                    disabled={isProcessing}
                   />
 
                   <div>
@@ -809,6 +1057,7 @@ export default function RegistroPage() {
                       placeholder="Describe a detalle el problema que estás presentando..."
                       className="form-input resize-none"
                       required
+                      disabled={isProcessing}
                     />
                   </div>
                 </div>
@@ -819,7 +1068,7 @@ export default function RegistroPage() {
                   <button
                     type="button"
                     onClick={prevStep}
-                    disabled={loading}
+                    disabled={loading || isProcessing}
                     className="btn-secondary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -832,7 +1081,7 @@ export default function RegistroPage() {
                     <button
                       type="button"
                       onClick={nextStep}
-                      disabled={loading}
+                      disabled={loading || isProcessing}
                       className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Siguiente
@@ -842,7 +1091,9 @@ export default function RegistroPage() {
 
                   <button
                     type="submit"
-                    disabled={loading || currentStep !== 3 || !canSubmit}
+                    disabled={
+                      loading || currentStep !== 3 || !canSubmit || isProcessing
+                    }
                     className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
                   >
                     {loading ? (
@@ -864,6 +1115,116 @@ export default function RegistroPage() {
         </div>
         <Footer />
       </main>
+
+      <style jsx>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
+        }
+        .animate-spin-slow {
+          animation: spin 1.5s linear infinite;
+        }
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+        .glass-card {
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 1rem;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        .form-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.875rem;
+          font-weight: 500;
+          margin-bottom: 0.5rem;
+        }
+        .form-input {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 0.75rem;
+          color: white;
+          transition: all 0.2s;
+          outline: none;
+        }
+        .form-input:focus {
+          border-color: #f97316;
+          box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        .form-input::placeholder {
+          color: rgba(255, 255, 255, 0.2);
+        }
+        .btn-primary {
+          padding: 0.75rem 1.5rem;
+          background: linear-gradient(135deg, #f97316, #ea580c);
+          color: white;
+          border: none;
+          border-radius: 0.75rem;
+          font-weight: 500;
+          transition: all 0.2s;
+          cursor: pointer;
+        }
+        .btn-primary:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 20px rgba(249, 115, 22, 0.3);
+        }
+        .btn-secondary {
+          padding: 0.75rem 1.5rem;
+          background: rgba(255, 255, 255, 0.05);
+          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 0.75rem;
+          font-weight: 500;
+          transition: all 0.2s;
+          cursor: pointer;
+        }
+        .btn-secondary:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      `}</style>
     </div>
   );
 }

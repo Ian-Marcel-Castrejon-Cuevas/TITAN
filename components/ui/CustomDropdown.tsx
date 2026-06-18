@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, Check } from "lucide-react";
 
 interface CustomDropdownProps {
   label: string;
@@ -10,30 +10,35 @@ interface CustomDropdownProps {
   onChange: (value: string) => void;
   icon?: React.ReactNode;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-export function CustomDropdown({ 
-  label, 
-  options, 
-  value, 
-  onChange, 
+export function CustomDropdown({
+  label,
+  options,
+  value,
+  onChange,
   icon,
-  placeholder = 'Selecciona una opción'
+  placeholder = "Selecciona una opción",
+  disabled = false,
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedOption = options.find(opt => opt === value);
+  const selectedOption = options.find((opt) => opt === value);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -43,16 +48,23 @@ export function CustomDropdown({
       </label>
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 rounded-xl bg-slate-800/50 border border-slate-700 text-white text-left flex items-center justify-between hover:border-primary-500/50 transition-all duration-200"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`w-full px-4 py-3 rounded-xl bg-slate-800/50 border border-slate-700 text-white text-left flex items-center justify-between transition-all duration-200 ${
+          disabled
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:border-primary-500/50 cursor-pointer"
+        }`}
       >
-        <span className={selectedOption ? 'text-white' : 'text-slate-500'}>
+        <span className={selectedOption ? "text-white" : "text-slate-500"}>
           {selectedOption || placeholder}
         </span>
-        <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-5 h-5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
-      
-      {isOpen && (
+
+      {isOpen && !disabled && (
         <div className="absolute z-50 w-full mt-2 rounded-xl bg-slate-800 border border-slate-700 shadow-xl overflow-hidden animate-fade-in">
           <div className="max-h-60 overflow-y-auto">
             {options.map((option) => (
@@ -66,7 +78,9 @@ export function CustomDropdown({
                 className="w-full px-4 py-3 text-left text-white hover:bg-white/5 transition-colors flex items-center justify-between group"
               >
                 <span>{option}</span>
-                {value === option && <Check className="w-4 h-4 text-primary-500" />}
+                {value === option && (
+                  <Check className="w-4 h-4 text-primary-500" />
+                )}
               </button>
             ))}
           </div>
