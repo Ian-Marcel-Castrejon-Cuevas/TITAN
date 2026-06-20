@@ -43,9 +43,12 @@ const SONIDOS = [
   "/audios/NIVEL COMPLETO.mp3",
   "/audios/PHONE.mp3",
   "/audios/XPMINECRAFT.mp3",
+  "/sonidos/doh.mp3",
 ];
 
 const SONIDO_BOTAR_CARVEN = "/audios/botarcarven.mp3";
+
+const SONIDO_LEVANTAR_CARVEN = "/audios/revivan.mp3";
 
 const formatFechaHora = (fechaStr: string) => {
   if (!fechaStr) return "";
@@ -144,6 +147,12 @@ export default function DashboardPage() {
 
     if (motivo && motivo.toLowerCase().trim() === "botar carven") {
       soundUrl = SONIDO_BOTAR_CARVEN;
+    } else if (
+      motivo &&
+      (motivo.toLowerCase().trim() === "levantar carven1" ||
+        motivo.toLowerCase().trim() === "levantar carven2")
+    ) {
+      soundUrl = SONIDO_LEVANTAR_CARVEN;
     } else {
       const randomIndex = Math.floor(Math.random() * SONIDOS.length);
       soundUrl = SONIDOS[randomIndex];

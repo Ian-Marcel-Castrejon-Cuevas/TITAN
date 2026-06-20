@@ -24,6 +24,7 @@ export function useNotification() {
     "/sonidos/NIVEL COMPLETO.mp3",
     "/sonidos/PHONE.mp3",
     "/sonidos/XPMINECRAFT.mp3",
+    "/sonidos/doh.mp3",
   ];
 
   const playSound = useCallback(() => {

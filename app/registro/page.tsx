@@ -204,15 +204,13 @@ const motivosProblemaEquipo = [
 
 const motivosCarven = [
   "Botar Carven",
-  "Reiniciar Carven1",
-  "Reiniciar Carven2",
+  "Levantar Carven1",
+  "Levantar Carven2",
   "Cambio de contraseña",
   "Desbloqueo de Carven",
   "Asignar producto",
   "Quitar producto",
   "Agregar lista de trabajo individual",
-  "Levantar carven 1",
-  "Levantar carven 2",
   "Levantar carven 3",
   "Otros",
 ];
@@ -328,15 +326,15 @@ async function ejecutarReiniciarCarven1(): Promise<{
     const data = await response.json();
 
     if (!data.success) {
-      console.warn("Advertencia al reiniciar Carven1:", data.message);
+      console.warn("Advertencia al Levantar Carven1:", data.message);
     }
 
     return data;
   } catch (error) {
-    console.error("Error en REINICIAR CARVEN1:", error);
+    console.error("Error en Levantar Carven1:", error);
     return {
       success: false,
-      message: "Error al reiniciar Carven1",
+      message: "Error al Levantar Carven1",
       restarted: false,
       botarCarven: false,
     };
@@ -361,15 +359,15 @@ async function ejecutarReiniciarCarven2(): Promise<{
     const data = await response.json();
 
     if (!data.success) {
-      console.warn("Advertencia al reiniciar Carven2:", data.message);
+      console.warn("Advertencia al Levantar Carven2:", data.message);
     }
 
     return data;
   } catch (error) {
-    console.error("Error en REINICIAR CARVEN2:", error);
+    console.error("Error en Levantar Carven2:", error);
     return {
       success: false,
-      message: "Error al reiniciar Carven2",
+      message: "Error al Levantar Carven2",
       restarted: false,
       botarCarven: false,
     };
@@ -620,9 +618,9 @@ export default function RegistroPage() {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       let result;
-      if (motivo === "Reiniciar Carven1") {
+      if (motivo === "Levantar Carven1") {
         result = await ejecutarReiniciarCarven1();
-      } else if (motivo === "Reiniciar Carven2") {
+      } else if (motivo === "Levantar Carven2") {
         result = await ejecutarReiniciarCarven2();
       }
 
@@ -671,7 +669,7 @@ export default function RegistroPage() {
 
         await new Promise((resolve) => setTimeout(resolve, 500));
       } else {
-        throw new Error(result?.message || "Error al reiniciar Carven");
+        throw new Error(result?.message || "Error al Levantar Carven");
       }
 
       setSuccess(true);
@@ -718,8 +716,8 @@ export default function RegistroPage() {
       const ticketCode = response.ticketCode;
 
       if (
-        formData.motivo === "Reiniciar Carven1" ||
-        formData.motivo === "Reiniciar Carven2"
+        formData.motivo === "Levantar Carven1" ||
+        formData.motivo === "Levantar Carven2"
       ) {
         await handleCarvenRestart(formData.motivo, ticketCode);
       } else {
