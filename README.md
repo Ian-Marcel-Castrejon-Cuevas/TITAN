@@ -1,6 +1,6 @@
-# cadnux-app 🚀
+# TITAN 🚀
 
-**cadnux-app** is a robust web application built with Next.js, designed to provide a comprehensive platform for managing [**TODO: Briefly describe the core purpose of cadnux-app here. For example, "employee data, security information, and operational tasks" or "ticketing and support requests"**]. It leverages a modern tech stack to deliver a performant, secure, and user-friendly experience.
+**TITAN** is a robust web application built with Next.js, designed to provide a comprehensive platform for managing [**TODO: Briefly describe the core purpose of TITAN here. For example, "employee data, security information, and operational tasks" or "ticketing and support requests"**]. It leverages a modern tech stack to deliver a performant, secure, and user-friendly experience.
 
 This project integrates a frontend developed in TypeScript/React with a backend service written in Python, enabling seamless data exchange and complex logic execution.
 
@@ -44,7 +44,7 @@ This project integrates a frontend developed in TypeScript/React with a backend 
 
 ## Installation 🛠️
 
-Follow these steps to set up and run `cadnux-app` locally:
+Follow these steps to set up and run `TITAN` locally:
 
 ### Prerequisites
 
@@ -59,7 +59,7 @@ Follow these steps to set up and run `cadnux-app` locally:
 1.  **Clone the repository**:
     ```bash
     git clone [repository_url]
-    cd cadnux-app
+    cd TITAN
     ```
 
 2.  **Install frontend dependencies**:
@@ -108,7 +108,7 @@ Follow these steps to set up and run `cadnux-app` locally:
     *   [**TODO: Specify the port the backend runs on**]
 
 2.  **Start the frontend development server**:
-    *   In a separate terminal, navigate back to the root `cadnux-app` directory.
+    *   In a separate terminal, navigate back to the root `TITAN` directory.
     *   Run the Next.js development server:
         ```bash
         npm run dev
@@ -206,7 +206,7 @@ JWT_SECRET="your_super_secret_key_for_jwt"
 
 ## Contributing 🤝
 
-We welcome contributions to `cadnux-app`! If you'd like to contribute, please:
+We welcome contributions to `TITAN`! If you'd like to contribute, please:
 
 1.  Fork the repository.
 2.  Create a new branch for your feature or bug fix (`git checkout -b feature/your-feature-name`).
