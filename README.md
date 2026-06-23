@@ -28,7 +28,7 @@ This project integrates a frontend developed in TypeScript/React with a backend 
     *   React Hot Toast for notifications
     *   Axios for HTTP requests
     *   Crypto-JS for client-side encryption [**TODO: Confirm usage of Crypto-JS on the frontend**]
-*   **Backend (cadnux-backend)**:
+*   **Backend (TITAN-backend)**:
     *   Python
     *   [**TODO: Specify Python web framework if any, e.g., Flask, FastAPI**]
     *   MSSQL, PostgreSQL (pg) for database interactions
@@ -76,7 +76,7 @@ Follow these steps to set up and run `TITAN` locally:
 
 1.  **Navigate to the backend directory**:
     ```bash
-    cd cadnux-backend
+    cd TITAN-backend
     ```
 
 2.  **Create and activate a virtual environment**:
@@ -94,12 +94,12 @@ Follow these steps to set up and run `TITAN` locally:
     ```
 
 4.  **Configure backend environment variables**:
-    Refer to the backend's documentation or create a `.env` file in the `cadnux-backend` directory for necessary configurations.
+    Refer to the backend's documentation or create a `.env` file in the `TITAN-backend` directory for necessary configurations.
 
 ### Running the Application
 
 1.  **Start the backend server**:
-    *   Navigate to the `cadnux-backend` directory.
+    *   Navigate to the `TITAN-backend` directory.
     *   Ensure your virtual environment is activated.
     *   Run the backend application:
         ```bash
@@ -146,7 +146,7 @@ Once the application is running, you can:
 │   ├── registro/             # Registration page
 │   ├── soporte/              # Support pages
 │   └── tickets/              # Ticket management pages
-├── cadnux-backend/           # Python backend service
+├── TITAN-backend/           # Python backend service
 │   ├── app.py                # Main backend application entry point
 │   ├── venv310/              # Python virtual environment
 │   └── verificar_conexion_remota.py # Script for remote connection verification
@@ -202,7 +202,7 @@ JWT_SECRET="your_super_secret_key_for_jwt"
 # Add other backend-specific environment variables here
 ```
 
-**Note**: Ensure your Python backend (`cadnux-backend`) is also configured to read its environment variables, potentially using a `.env` file within its directory or other configuration methods.
+**Note**: Ensure your Python backend (`TITAN-backend`) is also configured to read its environment variables, potentially using a `.env` file within its directory or other configuration methods.
 
 ## Contributing 🤝
 
