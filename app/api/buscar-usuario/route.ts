@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
 
 const pool = new Pool({
-  host: process.env.PG_HOST || "192.168.8.55",
-  port: parseInt(process.env.PG_PORT || "5432"),
-  user: process.env.PG_USER || "asecon",
-  password: process.env.PG_PASSWORD || "",
-  database: process.env.PG_DATABASE || "asecon",
+  host: process.env.PG_HOST,
+  port: 5432,
+  user: process.env.PG_USER,
+  password: process.env.PG_PASSWORD,
+  database: process.env.PG_DATABASE,
   ssl: false,
 });
 
@@ -26,16 +26,17 @@ export async function GET(request: NextRequest) {
 
     const result = await client.query(
       `SELECT 
-        emausuariocarven as ch,
-        CONCAT(
-          COALESCE(emanombre, ''),
-          CASE WHEN emanombre IS NOT NULL AND (emaappaterno IS NOT NULL OR emaapmaterno IS NOT NULL) THEN ' ' ELSE '' END,
-          COALESCE(emaappaterno, ''),
-          CASE WHEN emaappaterno IS NOT NULL AND emaapmaterno IS NOT NULL THEN ' ' ELSE '' END,
-          COALESCE(emaapmaterno, '')
-        ) as nombre_completo
-       FROM tbempleados 
-       WHERE emausuariocarven = $1`,
+    emausuariocarven as ch,
+    CONCAT(
+      COALESCE(emanombre, ''),
+      CASE WHEN emanombre IS NOT NULL AND (emaappaterno IS NOT NULL OR emaapmaterno IS NOT NULL) THEN ' ' ELSE '' END,
+      COALESCE(emaappaterno, ''),
+      CASE WHEN emaappaterno IS NOT NULL AND emaapmaterno IS NOT NULL THEN ' ' ELSE '' END,
+      COALESCE(emaapmaterno, '')
+    ) as nombre_completo
+   FROM tbempleados 
+   WHERE emausuariocarven = $1 
+   AND (emffecbaja = '0001-01-01' OR emffecbaja IS NULL)`,
       [ch.toUpperCase()],
     );
 

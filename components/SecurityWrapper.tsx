@@ -14,46 +14,67 @@ export default function SecurityWrapper({
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "c") {
+        return;
+      }
+
+      if (e.ctrlKey && e.key === "v") {
+        return;
+      }
+
+      if (e.ctrlKey && e.key === "a") {
+        return;
+      }
+
       if (e.key === "F12") {
         e.preventDefault();
         return false;
       }
+
       if (e.ctrlKey && e.shiftKey && e.key === "I") {
         e.preventDefault();
         return false;
       }
+
       if (e.ctrlKey && e.shiftKey && e.key === "J") {
         e.preventDefault();
         return false;
       }
+
       if (e.ctrlKey && e.shiftKey && e.key === "C") {
         e.preventDefault();
         return false;
       }
+
       if (e.ctrlKey && e.key === "u") {
         e.preventDefault();
         return false;
       }
+
       if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
         return false;
       }
+
       if (e.ctrlKey && e.key === "p") {
         e.preventDefault();
         return false;
       }
+
       if (e.ctrlKey && e.shiftKey && e.key === "R") {
         e.preventDefault();
         return false;
       }
+
       if (e.ctrlKey && e.key === "r") {
         e.preventDefault();
         return false;
       }
+
       if (e.key === "F5") {
-        e.preventDefault();
         return false;
       }
+
       if (e.ctrlKey && e.key === "e") {
         e.preventDefault();
         return false;
@@ -61,11 +82,7 @@ export default function SecurityWrapper({
     };
 
     const disableSelection = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-        return;
-      }
-      e.preventDefault();
+      return;
     };
 
     const disableDrag = (e: DragEvent) => {
@@ -74,7 +91,6 @@ export default function SecurityWrapper({
     };
 
     const handleCopy = (e: ClipboardEvent) => {
-      e.preventDefault();
       return false;
     };
 
