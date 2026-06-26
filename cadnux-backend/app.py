@@ -6,23 +6,35 @@ import jwt
 import datetime
 from datetime import timezone
 from twofish import Twofish
+import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Configuración de la base de datos
+# Configuración de la base de datos desde .env
 DB_CONFIG = {
-    'host': '192.168.8.55',
-    'port': 5432,
-    'database': 'asecon',
-    'user': 'asecon',
-    'password': 'MassLrj10$'
+    'host': os.getenv('DB_HOST', 'localhost'),
+    'port': int(os.getenv('DB_PORT', 5432)),
+    'database': os.getenv('DB_DATABASE', 'asecon'),
+    'user': os.getenv('DB_USER', 'asecon'),
+    'password': os.getenv('DB_PASSWORD', '')
 }
 
-SECRET_KEY = 'CADNUX_JWT_SECRET_KEY_2024_VERY_SECURE_32_BYTES'
+# Configuración de seguridad desde .env
+SECRET_KEY = os.getenv('SECRET_KEY', 'CADNUX_JWT_SECRET_KEY_2024_VERY_SECURE_32_BYTES')
 
-# Departamentos que son administradores
-ADMIN_DEPARTMENTS = ['09']
+# Departamentos administradores desde .env
+ADMIN_DEPARTMENTS = os.getenv('ADMIN_DEPARTMENTS', '09').split(',')
+
+# Configuración del servidor
+PORT = int(os.getenv('PORT', 5001))
+HOST = os.getenv('HOST', '0.0.0.0')
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+JWT_EXPIRATION_HOURS = int(os.getenv('JWT_EXPIRATION_HOURS', 8))
 
 def get_db_connection():
     """Obtiene conexión a PostgreSQL"""
@@ -135,7 +147,7 @@ def login():
             'nombre_completo': nombre_completo,
             'departamento': departamento,
             'es_admin': es_admin,
-            'exp': datetime.datetime.now(timezone.utc) + datetime.timedelta(hours=8)
+            'exp': datetime.datetime.now(timezone.utc) + datetime.timedelta(hours=JWT_EXPIRATION_HOURS)
         }, SECRET_KEY, algorithm='HS256')
         
         return jsonify({
@@ -180,9 +192,10 @@ if __name__ == '__main__':
     print("="*60)
     print("🚀 CADNUX Backend - Python 3.10 + Twofish")
     print("="*60)
+    print(f"📡 Servidor corriendo en: {HOST}:{PORT}")
     print("📡 Endpoints:")
     print("  POST /api/auth/login   - Login de usuario")
     print("  POST /api/test-decrypt - Prueba de desencriptación")
     print("  GET  /health           - Health check")
     print("="*60)
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host=HOST, port=PORT, debug=DEBUG)
