@@ -8,10 +8,15 @@ const execAsync = promisify(exec);
 const SSH_HOST = process.env.SSH_HOST;
 const SSH_USER = process.env.SSH_USER;
 const SSH_PASS = process.env.SSH_PASS;
+const SSH_PORT = process.env.SSH_PORT || "22";
 
-const PLINK_PATH = "C:\\Program Files\\PuTTY\\plink.exe";
-
-const HOST_KEY_CARVEN1 = process.env.SSH_KEY;
+const SSH_OPTIONS = [
+  "-o KexAlgorithms=+diffie-hellman-group1-sha1",
+  "-o HostKeyAlgorithms=+ssh-rsa",
+  "-o StrictHostKeyChecking=no",
+  "-o UserKnownHostsFile=/dev/null",
+  `-p ${SSH_PORT}`
+].join(" ");
 
 async function checkCarven1Status(): Promise<boolean> {
   try {
@@ -24,56 +29,41 @@ async function checkCarven1Status(): Promise<boolean> {
         signal: controller.signal,
         timeout: 15000,
         validateStatus: () => true,
-      },
+      }
     );
 
     clearTimeout(timeoutId);
     return response.status === 200;
   } catch (error) {
+    console.error("[checkCarven1Status] Error:", error);
     return false;
   }
 }
 
 async function executeSSHCommands(
-  commands: string[],
+  commands: string[]
 ): Promise<{ output: string; error: string }> {
   try {
-    const commandString = commands.join(" && ");
-
     if (!SSH_PASS) {
-      throw new Error(
-        "SSH_PASS no está configurado en las variables de entorno",
-      );
+      throw new Error("SSH_PASS no está configurado en las variables de entorno");
     }
     if (!SSH_USER) {
-      throw new Error(
-        "SSH_USER no está configurado en las variables de entorno",
-      );
+      throw new Error("SSH_USER no está configurado en las variables de entorno");
     }
     if (!SSH_HOST) {
-      throw new Error(
-        "SSH_HOST no está configurado en las variables de entorno",
-      );
-    }
-    if (!HOST_KEY_CARVEN1) {
-      throw new Error(
-        "SSH_KEY no está configurado en las variables de entorno",
-      );
+      throw new Error("SSH_HOST no está configurado en las variables de entorno");
     }
 
-    const sshCommand = `"${PLINK_PATH}" -ssh -no-antispoof -pw ${SSH_PASS} -hostkey ${HOST_KEY_CARVEN1} ${SSH_USER}@${SSH_HOST} "${commandString}"`;
+    const commandString = commands.join(" && ");
 
-    const safeCommand = sshCommand.replace(
-      new RegExp(SSH_PASS.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
-      "******",
-    );
+    const sshCommand = `sshpass -p '${SSH_PASS}' ssh ${SSH_OPTIONS} ${SSH_USER}@${SSH_HOST} "${commandString}"`;
 
-    console.log("[SSH] Ejecutando comando con plink:", safeCommand);
+    console.log("[SSH] Ejecutando comando en Carven1...");
 
     const { stdout, stderr } = await execAsync(sshCommand, {
       timeout: 60000,
       maxBuffer: 1024 * 1024 * 10,
-      shell: "cmd.exe",
+      shell: "/bin/bash",
     });
 
     return { output: stdout, error: stderr };
@@ -93,34 +83,23 @@ async function testSSHConnection(): Promise<{
 }> {
   try {
     if (!SSH_PASS) {
-      throw new Error(
-        "SSH_PASS no está configurado en las variables de entorno",
-      );
+      throw new Error("SSH_PASS no está configurado en las variables de entorno");
     }
     if (!SSH_USER) {
-      throw new Error(
-        "SSH_USER no está configurado en las variables de entorno",
-      );
+      throw new Error("SSH_USER no está configurado en las variables de entorno");
     }
     if (!SSH_HOST) {
-      throw new Error(
-        "SSH_HOST no está configurado en las variables de entorno",
-      );
-    }
-    if (!HOST_KEY_CARVEN1) {
-      throw new Error(
-        "SSH_KEY no está configurado en las variables de entorno",
-      );
+      throw new Error("SSH_HOST no está configurado en las variables de entorno");
     }
 
-    const testCommand = `"${PLINK_PATH}" -ssh -no-antispoof -pw ${SSH_PASS} -hostkey ${HOST_KEY_CARVEN1} ${SSH_USER}@${SSH_HOST} "echo 'Conexión exitosa a Carven1 - Prueba'"`;
+    const testCommand = `sshpass -p '${SSH_PASS}' ssh ${SSH_OPTIONS} ${SSH_USER}@${SSH_HOST} "echo 'Conexión exitosa a Carven1 - Prueba'"`;
 
-    console.log("[Test SSH] Probando conexión SSH con plink...");
+    console.log("[Test SSH] Probando conexión SSH a Carven1...");
 
     const { stdout, stderr } = await execAsync(testCommand, {
       timeout: 30000,
       maxBuffer: 1024 * 1024 * 10,
-      shell: "cmd.exe",
+      shell: "/bin/bash",
     });
 
     console.log("[Test SSH] Output:", stdout);
@@ -141,7 +120,7 @@ async function testSSHConnection(): Promise<{
 
 async function ejecutarBotarCarven(): Promise<boolean> {
   try {
-    const baseUrl = "http://localhost:3000";
+    const baseUrl =  "http://localhost:3000";
     const response = await fetch(`${baseUrl}/api/delete-carven`, {
       method: "POST",
       headers: {
@@ -155,16 +134,14 @@ async function ejecutarBotarCarven(): Promise<boolean> {
   }
 }
 
+
 export async function POST() {
   try {
     console.log("[Restart Carven1] Verificando estado de Carven1...");
 
-    const testResult = await testSSHConnection();
+   const testResult = await testSSHConnection();
     if (!testResult.success) {
-      console.error(
-        "[Restart Carven1] Error en conexión SSH:",
-        testResult.error,
-      );
+      console.error("[Restart Carven1] Error en conexión SSH:", testResult.error);
       return NextResponse.json(
         {
           success: false,
@@ -173,7 +150,7 @@ export async function POST() {
           botarCarven: false,
           error: testResult.error,
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
     console.log("[Restart Carven1] Conexión SSH exitosa");
@@ -184,17 +161,14 @@ export async function POST() {
       console.log("[Restart Carven1] Carven1 responde correctamente");
       return NextResponse.json({
         success: true,
-        message:
-          "Carven1 está respondiendo correctamente, no se requiere reinicio",
+        message: "Carven1 está respondiendo correctamente, no se requiere reinicio",
         restarted: false,
         botarCarven: false,
         status: "healthy",
       });
     }
 
-    console.log(
-      "[Restart Carven1] Carven1 no responde, procediendo con reinicio...",
-    );
+    console.log("[Restart Carven1] Carven1 no responde, procediendo con reinicio...");
 
     const commands = [
       "cd /etc/init.d",
@@ -239,7 +213,7 @@ export async function POST() {
         botarCarven: false,
         error: error instanceof Error ? error.message : "Error desconocido",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
