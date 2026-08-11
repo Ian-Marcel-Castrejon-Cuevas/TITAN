@@ -11,6 +11,23 @@ const pool = new Pool({
 });
 
 export async function GET(request: NextRequest) {
+  /**
+   * Busca un usuario por su CH en PostgreSQL.
+   *
+   * Parámetros:
+   * - `request` (NextRequest): se espera la query string `?ch=...`.
+   *
+   * Retorna:
+   * - `NextResponse` con `{ success: true, usuario: { ch, nombre_completo } }` si existe.
+   * - Si no se proporciona `ch`, retorna status 400.
+   * - Si no se encuentra, retorna `{ success: false, usuario: null }`.
+   *
+   * Excepciones:
+   * - Propaga errores de conexión/consulta a PostgreSQL que se registran en consola.
+   *
+   * Ejemplo:
+   * await fetch('/api/buscar-usuario?ch=A123')
+   */
   try {
     const searchParams = request.nextUrl.searchParams;
     const ch = searchParams.get("ch");

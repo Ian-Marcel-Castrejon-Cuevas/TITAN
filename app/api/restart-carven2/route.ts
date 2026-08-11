@@ -19,6 +19,15 @@ const SSH_OPTIONS2 = [
 ].join(" ");
 
 async function checkCarven2Status(): Promise<boolean> {
+  /**
+   * Verifica si Carven2 responde mediante una petición HTTP al servicio local del controlador.
+   *
+   * Retorna:
+   * - `Promise<boolean>`: `true` si responde con status 200, `false` en otro caso.
+   *
+   * Excepciones:
+   * - Captura errores de red y devuelve `false` (no lanza excepciones al llamador).
+   */
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -43,6 +52,21 @@ async function checkCarven2Status(): Promise<boolean> {
 async function executeSSHCommands(
   commands: string[]
 ): Promise<{ output: string; error: string }> {
+  /**
+   * Ejecuta comandos remotos vía SSH usando `sshpass` y `ssh` para Carven2.
+   *
+   * Parámetros:
+   * - `commands` (string[]): lista de comandos a ejecutar en el host remoto.
+   *
+   * Retorna:
+   * - `Promise<{ output: string; error: string }>` con `stdout`/`stderr` del comando.
+   *
+   * Excepciones:
+   * - Lanza `Error` si faltan variables de entorno de SSH o si `exec` falla.
+   *
+   * Seguridad:
+   * - Usa `sshpass` con una contraseña en texto claro (peligroso). Evitar en producción.
+   */
   try {
     if (!SSH_PASS2) {
       throw new Error("SSH_PASS2 no está configurado en las variables de entorno");
@@ -81,6 +105,16 @@ async function testSSHConnection(): Promise<{
   output: string;
   error?: string;
 }> {
+  /**
+   * Realiza una prueba simple de conexión SSH ejecutando un `echo` remoto para Carven2.
+   *
+   * Retorna:
+   * - `{ success: true, output, error? }` si la conexión y comando se ejecutan.
+   * - `{ success: false, output: '', error }` en caso de fallo.
+   *
+   * Excepciones:
+   * - No lanza; captura errores y los devuelve en la respuesta.
+   */
   try {
     if (!SSH_PASS2) {
       throw new Error("SSH_PASS2 no está configurado en las variables de entorno");
@@ -119,6 +153,15 @@ async function testSSHConnection(): Promise<{
 }
 
 async function ejecutarBotarCarven(): Promise<boolean> {
+  /**
+   * Invoca el endpoint interno `/api/delete-carven` para ejecutar la limpieza local de Carven2.
+   *
+   * Retorna:
+   * - `Promise<boolean>` indicando si la petición fue exitosa (`response.ok`).
+   *
+   * Excepciones:
+   * - Captura errores de fetch y retorna `false` en caso de fallo.
+   */
   try {
     const baseUrl = "http://localhost:3000";
     const response = await fetch(`${baseUrl}/api/delete-carven`, {
@@ -135,6 +178,18 @@ async function ejecutarBotarCarven(): Promise<boolean> {
 }
 
 export async function POST() {
+  /**
+   * Endpoint que reinicia Carven2 si no responde: verifica estado, prueba SSH y ejecuta reinicio remoto.
+   *
+   * Retorna:
+   * - `NextResponse` con detalles del resultado: `success`, `restarted`, `botarCarven`, `output`, `error`.
+   *
+   * Excepciones:
+   * - Maneja errores y devuelve status 500 en caso de fallos graves.
+   *
+   * Seguridad:
+   * - Este endpoint ejecuta comandos remotos y debería protegerse; no exponer sin autenticación/autoridad.
+   */
   try {
     console.log("[Restart Carven2] Verificando estado de Carven2...");
 

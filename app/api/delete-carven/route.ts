@@ -10,6 +10,21 @@ const pool = new Pool({
   ssl: false,
 });
 
+/**
+ * Elimina registros temporales de Carven en PostgreSQL.
+ *
+ * No requiere body; ejecuta una consulta `DELETE FROM tbingresos WHERE infingreso >= CURRENT_DATE`.
+ *
+ * Retorna:
+ * - `NextResponse` con `{ success: true }` si la operación se ejecuta correctamente.
+ * - En errores retorna `{ success: false }`.
+ *
+ * Excepciones:
+ * - Propaga errores de conexión/ejecución en PostgreSQL (se capturan y devuelven como fallo genérico).
+ *
+ * Ejemplo:
+ * await fetch('/api/delete-carven', { method: 'POST' })
+ */
 export async function POST() {
   try {
     const client = await pool.connect();

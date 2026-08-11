@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
 export async function GET(request: NextRequest) {
+  /**
+   * Verifica la validez de un token JWT enviado en `Authorization: Bearer <token>`.
+   *
+   * Parámetros:
+   * - `request` (NextRequest): cabecera `authorization` requerida.
+   *
+   * Retorna:
+   * - `NextResponse` con `{ valid: true, user }` si el token es válido.
+   * - Si no se proporciona o es inválido, retorna `{ valid: false, error }` con status 401.
+   *
+   * Excepciones:
+   * - Errores inesperados de verificación devuelven status 500.
+   *
+   * Ejemplo:
+   * await fetch('/api/auth/verify', { headers: { Authorization: 'Bearer <token>' } })
+   */
   try {
     const authHeader = request.headers.get('authorization');
     

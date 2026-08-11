@@ -4,6 +4,23 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://192.168.8.87:5001";
 
 export async function POST(request: NextRequest) {
+  /**
+   * Proxy de autenticación que reenvía credenciales al backend Python.
+   *
+   * Parámetros:
+   * - `request` (NextRequest): body JSON con `usuario_ch` y `password`.
+   *
+   * Retorna:
+   * - `NextResponse` con `{ success: true, token, usuario_ch, nombre_completo, llave }` en caso de éxito.
+   * - Si faltan campos retorna status 400.
+   * - Si el backend responde con error reenvía el error correspondiente.
+   *
+   * Excepciones:
+   * - Captura errores de red y devuelve status 500 con mensaje genérico.
+   *
+   * Seguridad:
+   * - Maneja credenciales sensibles; asegurar transporte TLS y no loguear contraseñas en producción.
+   */
   try {
     const { usuario_ch, password } = await request.json();
 

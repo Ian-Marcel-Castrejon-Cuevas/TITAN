@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSqlConnection, generateTicketId } from "@/lib/db_sqlserver";
 
+/**
+ * Obtiene la lista completa de tickets.
+ *
+ * Parámetros:
+ * - `request` (NextRequest): objeto de la petición entrante (no se usan parámetros query actualmente).
+ *
+ * Retorna:
+ * - `NextResponse` con `{ success: true, tickets: Ticket[] }` en caso de éxito.
+ * - En errores regresa un JSON con `{ success: false, error: string }` y status 500.
+ *
+ * Excepciones:
+ * - Errores de conexión a la base de datos o consultas SQL (se propagan y se registran en consola).
+ *
+ * Ejemplo:
+ * await fetch('/api/tickets')
+ */
 export async function GET(request: NextRequest) {
   try {
     const pool = await getSqlConnection();
@@ -28,6 +44,23 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * Crea un nuevo ticket en la base de datos.
+ *
+ * Parámetros:
+ * - `request` (NextRequest): body JSON con campos del ticket: `ch`, `nombre`, `nodo`,
+ *   `cartera`, `plataforma`, `motivo`, `puesto`, `descripcion`, y opcional `creado_por`.
+ *
+ * Retorna:
+ * - `NextResponse` con `{ success: true, ticketCode: string }` cuando se crea correctamente.
+ * - En errores regresa `{ success: false, error: string }` y status 500.
+ *
+ * Excepciones:
+ * - Errores en la inserción SQL o en la conexión a la BD.
+ *
+ * Ejemplo:
+ * await fetch('/api/tickets', { method: 'POST', body: JSON.stringify(data) })
+ */
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();

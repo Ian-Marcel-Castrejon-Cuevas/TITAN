@@ -2,6 +2,19 @@ import { NextResponse } from "next/server";
 import { getSqlConnection } from "@/lib/db_sqlserver";
 
 export async function GET() {
+  /**
+   * Calcula estadísticas de tickets: total, por estado y tickets del día.
+   *
+   * Retorna:
+   * - `NextResponse` con `{ success: true, stats: { total_tickets, tickets_hoy, por_estado } }`.
+   *
+   * Excepciones:
+   * - Propaga errores de conexión/consulta a SQL Server y devuelve status 500.
+   *
+   * Ejemplo:
+   * await fetch('/api/tickets/stats')
+   */
+  
   try {
     const pool = await getSqlConnection();
 

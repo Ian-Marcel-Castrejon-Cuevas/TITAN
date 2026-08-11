@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import sql from "mssql";
 
+/**
+ * Obtiene notificaciones filtradas por `user_ch` o `departamento`.
+ *
+ * Parámetros:
+ * - `req` (NextRequest): acepta query params `user_ch`, `departamento`, `only_unread=true`.
+ *
+ * Retorna:
+ * - `NextResponse` con `{ success: true, notifications: [...] }` en caso de éxito.
+ * - Si faltan filtros retorna status 400.
+ *
+ * Excepciones:
+ * - Errores de consulta a SQL Server se registran y devuelven como status 500.
+ *
+ * Ejemplo:
+ * await fetch('/api/notifications?user_ch=A123&only_unread=true')
+ */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -50,6 +66,22 @@ export async function GET(req: NextRequest) {
   }
 }
 
+/**
+ * Crea una nueva notificación en la base de datos.
+ *
+ * Parámetros:
+ * - `req` (NextRequest): body JSON con `ticket_id`, `type`, `message`, y opcionales `user_ch`, `departamento`, `created_by`.
+ *
+ * Retorna:
+ * - `NextResponse` con `{ success: true, message }` cuando se inserta correctamente.
+ * - Si faltan campos requeridos retorna status 400.
+ *
+ * Excepciones:
+ * - Errores de inserción en SQL Server.
+ *
+ * Ejemplo:
+ * await fetch('/api/notifications', { method: 'POST', body: JSON.stringify({ ticket_id: 'TKT-...', type: 'info', message: '...' }) })
+ */
 export async function POST(req: NextRequest) {
   try {
     const { user_ch, departamento, ticket_id, type, message, created_by } =
@@ -90,6 +122,22 @@ export async function POST(req: NextRequest) {
   }
 }
 
+/**
+ * Marca notificaciones como leídas; puede marcar todas o una lista de IDs.
+ *
+ * Parámetros:
+ * - `req` (NextRequest): body JSON con `mark_all` (boolean) o `notification_ids` (array de números).
+ *
+ * Retorna:
+ * - `NextResponse` con `{ success: true, message }` cuando la operación se completa.
+ * - Si no se proveen parámetros válidos retorna status 400.
+ *
+ * Excepciones:
+ * - Errores en las actualizaciones SQL.
+ *
+ * Ejemplo:
+ * await fetch('/api/notifications', { method: 'PUT', body: JSON.stringify({ mark_all: true }) })
+ */
 export async function PUT(req: NextRequest) {
   try {
     const { notification_ids, mark_all } = await req.json();
@@ -132,6 +180,21 @@ export async function PUT(req: NextRequest) {
 }
 
 // DELETE: Eliminar notificaciones (opcional)
+/**
+ * Elimina una notificación por su `id` pasado por query string `?id=...`.
+ *
+ * Parámetros:
+ * - `req` (NextRequest): query param `id` requerido.
+ *
+ * Retorna:
+ * - `NextResponse` con `{ success: true, message }` si la eliminación se realiza.
+ *
+ * Excepciones:
+ * - Errores en la eliminación SQL.
+ *
+ * Ejemplo:
+ * await fetch('/api/notifications?id=123', { method: 'DELETE' })
+ */
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);

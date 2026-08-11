@@ -1,6 +1,21 @@
 import { NextResponse } from "next/server";
 import { getEmpleadoFoto } from "@/lib/db_sqlserver";
 
+/**
+ * Obtiene la foto (base64) de un empleado por su `ch`.
+ *
+ * Parámetros:
+ * - `request` (Request): se espera query string `?ch=...`.
+ *
+ * Retorna:
+ * - `NextResponse` con `{ ch, foto_base64 }` o error 400 si falta `ch`.
+ *
+ * Excepciones:
+ * - Propaga/registrar errores al obtener la foto desde SQL Server a través de `getEmpleadoFoto`.
+ *
+ * Ejemplo:
+ * await fetch('/api/empleados/foto?ch=A123')
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const ch = searchParams.get("ch");

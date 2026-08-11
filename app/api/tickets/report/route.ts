@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSqlConnection } from "@/lib/db_sqlserver";
 
 export async function POST(request: NextRequest) {
+  /**
+   * Genera un reporte de tickets entre dos fechas.
+   *
+   * Parámetros:
+   * - `request` (NextRequest): body JSON con `{ fechaInicio, fechaFin }` (formato YYYY-MM-DD esperado).
+   *
+   * Retorna:
+   * - `NextResponse` con `{ success: true, tickets: Ticket[], total: number }` en caso de éxito.
+   * - En errores regresa `{ success: false, error: string }` y status 500.
+   *
+   * Excepciones:
+   * - Errores en la ejecución de la consulta SQL.
+   *
+   * Ejemplo:
+   * await fetch('/api/tickets/report', { method: 'POST', body: JSON.stringify({ fechaInicio: '2024-01-01', fechaFin: '2024-01-31' }) })
+   */
   try {
     const { fechaInicio, fechaFin } = await request.json();
 

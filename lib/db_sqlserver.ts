@@ -100,6 +100,22 @@ export async function executeQuery<T = any>(
   query: string,
   params?: { name: string; type: sql.ISqlType; value: any }[],
 ): Promise<T[]> {
+  /**
+   * Ejecuta una consulta SQL parametrizada usando el pool compartido.
+   *
+   * Parámetros:
+   * - `query` (string): sentencia SQL a ejecutar.
+   * - `params` (Array): arreglos de parámetros con `{ name, type, value }` para `request.input()`.
+   *
+   * Retorna:
+   * - `Promise<T[]>` con el `recordset` devuelto por la consulta.
+   *
+   * Excepciones:
+   * - Lanza errores si la conexión o la consulta falla. El llamador debe manejar/reintentar según corresponda.
+   *
+   * Ejemplo:
+   * const rows = await executeQuery('SELECT * FROM tickets WHERE estado = @estado', [{ name: 'estado', type: sql.VarChar, value: 'abierto' }]);
+   */
   try {
     const pool = await getSqlConnection();
     const request = pool.request();
@@ -119,6 +135,15 @@ export async function executeQuery<T = any>(
 }
 
 export function generateTicketId(): string {
+  /**
+   * Genera un identificador único para tickets con prefijo `TKT-`.
+   *
+   * Retorna:
+   * - `string` con formato `TKT-YYMMDD-XXXXXX` (parte aleatoria en mayúsculas).
+   *
+   * Ejemplo:
+   * const id = generateTicketId(); // 'TKT-240811-4F7A9B'
+   */
   const date = new Date();
   const timestamp = date.toISOString().slice(2, 10).replace(/-/g, "");
   const random = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -126,6 +151,21 @@ export function generateTicketId(): string {
 }
 
 export async function getEmpleadoFoto(ch: string) {
+  /**
+   * Obtiene la foto (base64) de un empleado por su `ch` desde la tabla `empleados_fotos`.
+   *
+   * Parámetros:
+   * - `ch` (string): clave/identificador del empleado.
+   *
+   * Retorna:
+   * - `Promise<any|null>` con el registro `{ ch, foto_base64 }` o `null` si no existe.
+   *
+   * Excepciones:
+   * - Propaga errores de la consulta SQL.
+   *
+   * Ejemplo:
+   * const foto = await getEmpleadoFoto('A123');
+   */
   try {
     const pool = await getSqlConnection();
     const result = await pool

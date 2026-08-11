@@ -5,6 +5,23 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  /**
+   * Agrega una nota a un ticket específico y actualiza el contador de notas.
+   *
+   * Parámetros:
+   * - `request` (NextRequest): body JSON con `content`, `note_type` y `tags`.
+   * - `params` (object): `{ id: string }` identificador del ticket.
+   *
+   * Retorna:
+   * - `NextResponse` con `{ success: true }` cuando la nota se inserta correctamente.
+   * - En errores retorna `{ success: false, error }` con status 500.
+   *
+   * Excepciones:
+   * - Errores de inserción/actualización en SQL Server.
+   *
+   * Ejemplo:
+   * await fetch(`/api/tickets/${ticketId}/notes`, { method: 'POST', body: JSON.stringify({ content: '...' }) })
+   */
   try {
     const { id: ticketId } = await params;
     const { content, note_type, tags } = await request.json();

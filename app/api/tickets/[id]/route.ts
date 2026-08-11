@@ -5,6 +5,23 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  /**
+   * Obtiene un ticket por su ID junto con sus notas.
+   *
+   * Parámetros:
+   * - `request` (NextRequest): petición entrante.
+   * - `params` (object): objeto que contiene `{ id: string }` del ticket.
+   *
+   * Retorna:
+   * - `NextResponse` con `{ success: true, ticket, notes }` si se encuentra el ticket.
+   * - Si no existe, retorna `{ success: false, error: 'Ticket no encontrado' }` con status 404.
+   *
+   * Excepciones:
+   * - Propaga errores relacionados a la conexión o consulta en SQL Server.
+   *
+   * Ejemplo:
+   * await fetch(`/api/tickets/${ticketId}`)
+   */
   try {
     const { id: ticketId } = await params;
 
@@ -63,6 +80,27 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  /**
+   * Actualiza el estado o campos básicos de un ticket identificado por ID.
+   *
+   * Comportamiento:
+   * - Si `estado` está presente en el body, actualiza timestamps y crea una nota de cambio de estado.
+   * - Si `plataforma` o `motivo` están presentes, actualiza esos campos.
+   *
+   * Parámetros:
+   * - `request` (NextRequest): body JSON con campos a actualizar (`estado`, `plataforma`, `motivo`).
+   * - `params` (object): `{ id: string }` identificador del ticket.
+   *
+   * Retorna:
+   * - `NextResponse` con `{ success: true }` cuando la actualización es exitosa.
+   * - En caso de error retorna `{ success: false, error: string }` y status 500.
+   *
+   * Excepciones:
+   * - Errores de consulta/actualización en SQL Server.
+   *
+   * Ejemplo:
+   * await fetch(`/api/tickets/${ticketId}`, { method: 'PUT', body: JSON.stringify({ estado: 'resuelto' }) })
+   */
   try {
     const { id: ticketId } = await params;
     const body = await request.json();
@@ -211,6 +249,23 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  /**
+   * Elimina un ticket por su ID si no está en estado cerrado (lógica de seguridad de negocio).
+   *
+   * Parámetros:
+   * - `request` (NextRequest): petición entrante (no necesita body).
+   * - `params` (object): `{ id: string }` identificador del ticket.
+   *
+   * Retorna:
+   * - `NextResponse` con `{ success: true, message }` si la eliminación fue permitida y ejecutada.
+   * - Si el ticket está cerrado, retorna `{ success: false, message }` con status 400.
+   *
+   * Excepciones:
+   * - Errores de eliminación en la base de datos se devuelven como status 500.
+   *
+   * Ejemplo:
+   * await fetch(`/api/tickets/${ticketId}`, { method: 'DELETE' })
+   */
   try {
     const { id: ticketId } = await params;
 
