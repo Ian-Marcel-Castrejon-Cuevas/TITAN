@@ -238,6 +238,24 @@ export default function TicketDetailPage() {
   }, [ticketId]);
 
   useEffect(() => {
+    if (!ticketId) return;
+
+    const intervalId = window.setInterval(async () => {
+      try {
+        const response = await api.getTicket(ticketId);
+        if (response.success && response.ticket) {
+          setTicket(response.ticket);
+          setNotes(response.notes || []);
+        }
+      } catch {
+        // La capa API gestiona la expiración de sesión y los errores de conexión.
+      }
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [ticketId]);
+
+  useEffect(() => {
     if (isEditing && editForm.plataforma) {
       const nuevosMotivos = getMotivosPorPlataforma(editForm.plataforma);
       setMotivosDisponibles(nuevosMotivos);

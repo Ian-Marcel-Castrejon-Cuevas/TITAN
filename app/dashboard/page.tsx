@@ -99,7 +99,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<Estadisticas | null>(null);
   const [allTickets, setAllTickets] = useState<Ticket[]>([]);
-  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState("");
   const [activeTab, setActiveTab] = useState<
@@ -225,7 +224,6 @@ export default function DashboardPage() {
           },
         });
 
-        setFilteredTickets(tickets.filter((t) => t.estado === activeTab));
       } catch (error) {
         console.error("Error cargando:", error);
         if (!isAutoRefresh) toast.error("Error al cargar datos");
@@ -256,10 +254,6 @@ export default function DashboardPage() {
     setFechaInicio(hace30Dias.toISOString().split("T")[0]);
   }, [isAdmin, authLoading, router]);
 
-  useEffect(() => {
-    setFilteredTickets(allTickets.filter((t) => t.estado === activeTab));
-  }, [activeTab, allTickets]);
-
   const filterByStatus = (
     estado: "abierto" | "en_proceso" | "resuelto" | "cerrado",
   ) => {
@@ -269,19 +263,6 @@ export default function DashboardPage() {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    if (term.trim() === "") {
-      filterByStatus(activeTab);
-      return;
-    }
-    const filtered = allTickets.filter(
-      (ticket) =>
-        ticket.estado === activeTab &&
-        (ticket.ticket_id.toLowerCase().includes(term.toLowerCase()) ||
-          ticket.nombre.toLowerCase().includes(term.toLowerCase()) ||
-          ticket.ch.toLowerCase().includes(term.toLowerCase()) ||
-          ticket.motivo.toLowerCase().includes(term.toLowerCase())),
-    );
-    setFilteredTickets(filtered);
   };
 
   const generateReport = async () => {
@@ -445,6 +426,17 @@ export default function DashboardPage() {
       color: "from-gray-500 to-gray-600",
     },
   ];
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredTickets = allTickets.filter(
+    (ticket) =>
+      ticket.estado === activeTab &&
+      (!normalizedSearch ||
+        ticket.ticket_id.toLowerCase().includes(normalizedSearch) ||
+        ticket.nombre.toLowerCase().includes(normalizedSearch) ||
+        ticket.ch.toLowerCase().includes(normalizedSearch) ||
+        ticket.motivo.toLowerCase().includes(normalizedSearch)),
+  );
 
   return (
     <div className="flex h-screen">
