@@ -205,7 +205,7 @@ export default function TicketsPage() {
       }
 
       setTickets(userTickets);
-    } catch (error) {
+    } catch {
       toast.error("Error al cargar tickets");
     } finally {
       setLoading(false);

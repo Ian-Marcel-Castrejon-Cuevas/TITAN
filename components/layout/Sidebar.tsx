@@ -40,18 +40,6 @@ export function Sidebar() {
 
   const { fotoBase64, cargando } = useEmpleadoFoto(userCh || undefined);
 
-  const getInitials = (name: string) => {
-    if (
-      !name ||
-      name === "undefined" ||
-      name === "null" ||
-      name.trim() === ""
-    ) {
-      return "U";
-    }
-    return name.trim()[0].toUpperCase();
-  };
-
   const getNombreCorto = (nombre: string, maxLength: number = 20) => {
     if (
       !nombre ||

@@ -7,6 +7,8 @@ import { NotificationProvider } from "@/context/NotificationContext";
 import SecurityWrapper from "@/components/SecurityWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
+const securityWrapperEnabled =
+  process.env.SECURITY_WRAPPER_ENABLED?.toLowerCase() !== "false";
 
 export const metadata: Metadata = {
   title: "TITAN - Sistema de Tickets",
@@ -27,7 +29,11 @@ export default function RootLayout({
       <body className={`${inter.className} h-full`}>
         <AuthProvider>
           <NotificationProvider>
-            <SecurityWrapper>{children}</SecurityWrapper>
+            {securityWrapperEnabled ? (
+              <SecurityWrapper>{children}</SecurityWrapper>
+            ) : (
+              children
+            )}
             <Toaster
               position="top-right"
               toastOptions={{

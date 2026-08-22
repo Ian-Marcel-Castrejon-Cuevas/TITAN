@@ -24,6 +24,8 @@ Resumen
 - Errores comunes:
   - Formato de usuario inválido: aparición de aviso en UI.
   - Credenciales incorrectas: mensaje desde el backend.
+  - Otra sesión activa: al iniciar sesión en otro equipo, la sesión anterior se invalida automáticamente.
+  - Confirmación de presencia: cada hora aparece una pregunta; sin respuesta durante 10 minutos se cierra la sesión.
 
 3. Navegación principal
 - Barra lateral (`Sidebar`) con accesos:

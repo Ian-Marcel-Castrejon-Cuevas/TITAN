@@ -13,7 +13,6 @@ export class Twofish {
   }
 
   private init(key: Buffer) {
-    const Klen = this.N / 8;
     const k = new Array(4);
 
     for (let i = 0; i < 4; i++) {
@@ -30,12 +29,11 @@ export class Twofish {
     }
 
     for (let i = 0; i < 40; i++) {
-      this.K[i] = this.h(i, k);
+      this.K[i] = this.h(i);
     }
   }
 
   private rs(i: number, j: number): number {
-    const rsPoly = 0x14d;
     let value = j;
     for (let k = 0; k < 4; k++) {
       value = this.gfMult(value, i);
@@ -53,7 +51,7 @@ export class Twofish {
     return product;
   }
 
-  private h(i: number, k: number[]): number {
+  private h(i: number): number {
     let x = i;
     for (let j = 0; j < 4; j++) {
       x = this.S[j][x & 0xff] ^ (x >> 8);

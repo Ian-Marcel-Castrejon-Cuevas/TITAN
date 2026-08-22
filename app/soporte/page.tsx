@@ -3,12 +3,9 @@
 import { useEffect, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { useAuth } from "@/hooks/useAuth";
-import { Footer } from "@/components/layout/Footer";
 import { api, Ticket, TicketNote } from "@/lib/api";
 import {
   Search,
-  Filter,
-  Ticket as TicketIcon,
   AlertCircle,
   Clock,
   CheckCircle,
@@ -70,7 +67,7 @@ export default function SoportePage() {
         cerrado: ticketsData.filter((t: Ticket) => t.estado === "cerrado")
           .length,
       });
-    } catch (error) {
+    } catch {
       toast.error("Error al cargar tickets");
     } finally {
       setLoading(false);
@@ -85,7 +82,7 @@ export default function SoportePage() {
         notes: response.notes || [],
       });
       setShowModal(true);
-    } catch (error) {
+    } catch {
       toast.error("Error al cargar detalles");
     }
   };
@@ -110,7 +107,7 @@ export default function SoportePage() {
         notes: response.notes || [],
       });
       loadTickets();
-    } catch (error) {
+    } catch {
       toast.error("Error al agregar nota");
     } finally {
       setSendingNote(false);
@@ -133,7 +130,7 @@ export default function SoportePage() {
           notes: response.notes || [],
         });
       }
-    } catch (error) {
+    } catch {
       toast.error("Error al cambiar estado");
     }
   };

@@ -81,7 +81,7 @@ export default function SecurityWrapper({
       }
     };
 
-    const disableSelection = (e: Event) => {
+    const disableSelection = () => {
       return;
     };
 
@@ -90,7 +90,7 @@ export default function SecurityWrapper({
       return false;
     };
 
-    const handleCopy = (e: ClipboardEvent) => {
+    const handleCopy = () => {
       return false;
     };
 

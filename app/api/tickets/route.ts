@@ -17,7 +17,7 @@ import { getSqlConnection, generateTicketId } from "@/lib/db_sqlserver";
  * Ejemplo:
  * await fetch('/api/tickets')
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const pool = await getSqlConnection();
 

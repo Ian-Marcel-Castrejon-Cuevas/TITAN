@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getSqlConnection } from "@/lib/db_sqlserver";
 
+interface EstadoRow {
+  estado: string;
+  cantidad: number;
+}
+
 export async function GET() {
   /**
    * Calcula estadísticas de tickets: total, por estado y tickets del día.
@@ -30,7 +35,7 @@ export async function GET() {
     `);
 
     const por_estado: Record<string, number> = {};
-    estadoResult.recordset.forEach((row: any) => {
+    estadoResult.recordset.forEach((row: EstadoRow) => {
       por_estado[row.estado] = row.cantidad;
     });
 

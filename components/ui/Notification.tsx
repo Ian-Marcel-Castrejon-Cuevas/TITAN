@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Bell, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { X, Bell, AlertCircle, CheckCircle } from 'lucide-react';
 
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 

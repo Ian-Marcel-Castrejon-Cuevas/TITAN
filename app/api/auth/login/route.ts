@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createSession } from "@/lib/session-store";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://192.168.8.87:5001";
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://192.168.8.4:5001";
 
 export async function POST(request: NextRequest) {
   /**
@@ -47,13 +48,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    const sessionId = createSession({
+      ch: data.usuario_ch,
+      nombre: data.nombre_completo,
+      departamento: data.departamento,
+      es_admin: data.es_admin,
+    });
+
+    const result = NextResponse.json({
       success: true,
       token: data.token,
       usuario_ch: data.usuario_ch,
       nombre_completo: data.nombre_completo,
+      departamento: data.departamento,
+      es_admin: data.es_admin,
       llave: data.llave,
     });
+    result.cookies.set("titan_session", sessionId, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: request.nextUrl.protocol === "https:",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    return result;
   } catch (error) {
     console.error("❌ Error en login:", error);
     return NextResponse.json(

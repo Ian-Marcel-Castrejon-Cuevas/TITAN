@@ -12,8 +12,6 @@ import {
   CheckCircle,
   AlertCircle,
   Calendar,
-  PlusCircle,
-  Activity,
   Shield,
   X,
   XCircle,
@@ -21,7 +19,6 @@ import {
   Download,
   Search,
 } from "lucide-react";
-import Link from "next/link";
 import toast from "react-hot-toast";
 
 interface Estadisticas {
@@ -307,7 +304,7 @@ export default function DashboardPage() {
       } else {
         toast.error("Error al generar reporte");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error al generar reporte");
     } finally {
       setGeneratingReport(false);
@@ -512,7 +509,9 @@ export default function DashboardPage() {
                           : stat.label === "Resueltos"
                             ? "resuelto"
                             : "cerrado";
-                    filterByStatus(estado as any);
+                    filterByStatus(
+                      estado as "abierto" | "en_proceso" | "resuelto" | "cerrado",
+                    );
                   }
                 }}
                 className="cursor-pointer glass-card p-6 text-center hover:scale-105 transition"

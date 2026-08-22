@@ -1,5 +1,30 @@
 const API_URL = "";
 
+function expireSession(reason: string) {
+  localStorage.removeItem("cadnux_token");
+  localStorage.removeItem("cadnux_user_ch");
+  localStorage.removeItem("cadnux_nombre");
+  localStorage.removeItem("cadnux_departamento");
+  localStorage.removeItem("cadnux_es_admin");
+  localStorage.removeItem("cadnux_login_time");
+  document.cookie =
+    "cadnux_token=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+  document.cookie =
+    "cadnux_es_admin=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
+  void fetch("/api/auth/session", { method: "DELETE" }).catch(() => undefined);
+  window.location.href = `/login?reason=${reason}`;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  token: string;
+  usuario_ch: string;
+  nombre_completo: string;
+  departamento?: number;
+  es_admin?: boolean;
+  llave?: string;
+}
+
 export interface Ticket {
   ticket_id: string;
   ch: string;
@@ -49,6 +74,9 @@ class API {
       });
 
       if (!response.ok) {
+        if (response.status === 401 || response.status >= 500) {
+          expireSession(response.status === 401 ? "session-expired" : "server-unavailable");
+        }
         const error = await response
           .json()
           .catch(() => ({ error: "Error en la solicitud" }));
@@ -58,6 +86,9 @@ class API {
       return response.json();
     } catch (error) {
       console.error("Fetch error:", error);
+      if (endpoint !== "/api/auth/login") {
+        expireSession("server-unavailable");
+      }
       throw new Error("No se pudo conectar con el servidor");
     }
   }
@@ -119,11 +150,18 @@ class API {
     });
   }
 
-  async getStats(): Promise<{ success: boolean; stats: any }> {
+  async getStats(): Promise<{
+    success: boolean;
+    stats: {
+      total_tickets: number;
+      tickets_hoy: number;
+      por_estado: Record<string, number>;
+    };
+  }> {
     return this.request("/api/tickets/stats");
   }
 
-  async login(usuario_ch: string, password: string): Promise<any> {
+  async login(usuario_ch: string, password: string): Promise<AuthResponse> {
     return this.request("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ usuario_ch, password }),

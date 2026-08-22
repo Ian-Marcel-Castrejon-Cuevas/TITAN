@@ -58,6 +58,9 @@ Propósito
   - `SQL_SERVER, SQL_DATABASE, SQL_USER, SQL_PASSWORD, SQL_PORT`
   - `PG_HOST, PG_PORT, PG_USER, PG_PASSWORD, PG_DATABASE` (usado por algunas rutas Next que acceden a PostgreSQL)
   - `SSH_HOST / SSH_USER / SSH_PASS / SSH_HOST2 / SSH_USER2 / SSH_PASS2`
+- Sesiones:
+  - `data/sessions.json` — registro local de la única sesión activa por usuario.
+  - El archivo debe permanecer en el mismo servidor donde corre Next.js y no debe compartirse entre réplicas sin un mecanismo de bloqueo/almacenamiento común.
 - Flask (`cadnux-backend`):
   - `DB_HOST, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD` (PostgreSQL de empleados)
   - `SECRET_KEY` o `JWT_SECRET`
@@ -106,6 +109,8 @@ python app.py
 - Evitar uso de `sshpass` en producción; preferir claves SSH con `ssh-agent` y control de accesos.
 - Habilitar `HttpOnly` y `Secure` en cookies de sesión si es posible.
 - Validar tokens en servidor (no confiar solo en la decodificación de payload base64).
+- La sesión única de TITAN se controla con la cookie `titan_session`; iniciar sesión en otro equipo invalida la anterior.
+- Cada hora se solicita confirmación; si no se confirma en 10 minutos, la sesión se elimina del JSON local.
 
 10. Tareas de mantenimiento frecuentes
 - Actualizar dependencias Node/Python: revisar `package.json` y `requirements.txt` (si procede).

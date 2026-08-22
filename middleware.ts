@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const publicRoutes = ["/login", "/api/auth/login", "/api/auth/verify"];
+const publicRoutes = [
+  "/login",
+  "/api/auth/login",
+  "/api/auth/verify",
+  "/api/auth/session",
+];
 
 const adminRoutes = ["/soporte", "/reportes"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isPublicRoute = publicRoutes.some(
@@ -21,15 +26,42 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/tickets") ||
     pathname.startsWith("/registro") ||
     pathname.startsWith("/soporte") ||
-    pathname.startsWith("/reportes");
+    pathname.startsWith("/reportes") ||
+    pathname.startsWith("/api/");
 
   if (isProtectedRoute) {
     const token = request.cookies.get("cadnux_token")?.value;
+    const session = request.cookies.get("titan_session")?.value;
+    const isApiRoute = pathname.startsWith("/api/");
 
-    if (!token) {
+    if (!token || !session) {
+      if (isApiRoute) {
+        return NextResponse.json(
+          { success: false, error: "Sesión requerida" },
+          { status: 401 },
+        );
+      }
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
+    }
+
+    const sessionResponse = await fetch(
+      new URL("/api/auth/session", request.url),
+      {
+        headers: { cookie: request.headers.get("cookie") || "" },
+        cache: "no-store",
+      },
+    );
+
+    if (!sessionResponse.ok) {
+      if (isApiRoute) {
+        return NextResponse.json(
+          { success: false, error: "Sesión inválida o expirada" },
+          { status: 401 },
+        );
+      }
+      return NextResponse.redirect(new URL("/login", request.url));
     }
 
     const isAdminRoute = adminRoutes.some((route) =>
@@ -56,5 +88,11 @@ export const config = {
     "/soporte/:path*",
     "/reportes/:path*",
     "/login",
+    "/api/tickets/:path*",
+    "/api/notifications/:path*",
+    "/api/empleados/:path*",
+    "/api/delete-carven/:path*",
+    "/api/restart-carven1/:path*",
+    "/api/restart-carven2/:path*",
   ],
 };

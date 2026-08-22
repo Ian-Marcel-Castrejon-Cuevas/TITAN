@@ -278,7 +278,7 @@ export default function TicketDetailPage() {
     if (!ticket) return;
 
     try {
-      const response = await fetch("/api/notifications", {
+      await fetch("/api/notifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -321,7 +321,7 @@ export default function TicketDetailPage() {
       toast.success("Nota agregada");
       setNewNote("");
       loadTicket();
-    } catch (error) {
+    } catch {
       toast.error("Error al agregar nota");
     } finally {
       setSendingNote(false);
@@ -357,7 +357,7 @@ export default function TicketDetailPage() {
 
       toast.success(`Estado cambiado a: ${statusText}`);
       loadTicket();
-    } catch (error) {
+    } catch {
       toast.error("Error al cambiar estado");
     } finally {
       setUpdating(false);

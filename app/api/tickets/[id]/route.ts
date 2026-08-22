@@ -178,7 +178,7 @@ export async function PUT(
 
       return NextResponse.json({ success: true });
     } else if (plataforma !== undefined || motivo !== undefined) {
-      let updateFields = [];
+      const updateFields: string[] = [];
       const dbRequest = pool.request();
 
       if (plataforma !== undefined) {

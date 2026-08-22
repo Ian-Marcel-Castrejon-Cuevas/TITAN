@@ -10,8 +10,8 @@ const sqlConfig: sql.config = {
     encrypt: process.env.SQL_ENCRYPT === "true",
     trustServerCertificate: process.env.SQL_TRUST_SERVER_CERTIFICATE === "true",
     enableArithAbort: true,
-    connectTimeout: 30000,
-    requestTimeout: 30000,
+    connectTimeout: parseInt(process.env.SQL_CONNECT_TIMEOUT || "5000"),
+    requestTimeout: parseInt(process.env.SQL_REQUEST_TIMEOUT || "5000"),
   },
   pool: {
     max: 10,
@@ -19,12 +19,6 @@ const sqlConfig: sql.config = {
     idleTimeoutMillis: 30000,
   },
 };
-
-if (!sqlConfig.server || !sqlConfig.database) {
-  throw new Error(
-    "Faltan variables de entorno para SQL Server: SQL_SERVER y SQL_DATABASE son requeridas",
-  );
-}
 
 let pool: sql.ConnectionPool | null = null;
 let isConnecting = false;
@@ -35,6 +29,12 @@ let isConnecting = false;
  * @throws Error si no se puede conectar
  */
 export async function getSqlConnection(): Promise<sql.ConnectionPool> {
+  if (!sqlConfig.server || !sqlConfig.database) {
+    throw new Error(
+      "Faltan variables de entorno para SQL Server: SQL_SERVER y SQL_DATABASE son requeridas",
+    );
+  }
+
   if (pool && pool.connected) {
     return pool;
   }
@@ -96,9 +96,13 @@ export async function testSqlConnection() {
   }
 }
 
-export async function executeQuery<T = any>(
+export async function executeQuery<T = unknown>(
   query: string,
-  params?: { name: string; type: sql.ISqlType; value: any }[],
+  params?: {
+    name: string;
+    type: sql.ISqlType;
+    value: string | number | boolean | Date | Buffer | null;
+  }[],
 ): Promise<T[]> {
   /**
    * Ejecuta una consulta SQL parametrizada usando el pool compartido.

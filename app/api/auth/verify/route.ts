@@ -33,13 +33,13 @@ export async function GET(request: NextRequest) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'CADNUX_JWT_SECRET_KEY_2024');
       return NextResponse.json({ valid: true, user: decoded });
-    } catch (jwtError) {
+    } catch {
       return NextResponse.json(
         { valid: false, error: 'Token inválido o expirado' },
         { status: 401 }
       );
     }
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { valid: false, error: 'Error al verificar token' },
       { status: 500 }

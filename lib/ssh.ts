@@ -35,7 +35,7 @@ export function executeSSHCommands(
           return;
         }
 
-        stream.on("close", (code: number, signal: string) => {
+        stream.on("close", (code: number) => {
           clearTimeout(timeout);
           isResolved = true;
           conn.end();
