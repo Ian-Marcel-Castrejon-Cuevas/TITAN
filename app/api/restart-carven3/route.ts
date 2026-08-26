@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { exec } from "child_process";
 import { promisify } from "util";
+import axios from "axios";
 
 const execAsync = promisify(exec);
 
@@ -12,10 +13,34 @@ const SERVER_WAIT_TIMEOUT_MS = 5 * 60 * 1000;
 const PING_INTERVAL_MS = 5000;
 
 const SSH_OPTIONS3 = [
+  "-o KexAlgorithms=+diffie-hellman-group1-sha1",
+  "-o HostKeyAlgorithms=+ssh-rsa",
   "-o StrictHostKeyChecking=no",
   "-o UserKnownHostsFile=/dev/null",
   `-p ${SSH_PORT3}`,
 ].join(" ");
+
+async function checkCarven3Status(): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    const response = await axios.get(
+      "http://192.168.8.52:8081/asecon/servlet/asecon.hcarvenprin",
+      {
+        signal: controller.signal,
+        timeout: 15000,
+        validateStatus: () => true,
+      },
+    );
+
+    clearTimeout(timeoutId);
+    return response.status === 200;
+  } catch (error) {
+    console.warn("[checkCarven3Status] Carven3 no responde:", error);
+    return false;
+  }
+}
 
 function sshCommand(command: string) {
   if (!SSH_PASS3) throw new Error("SSH_PASS3 no está configurado");
@@ -59,6 +84,20 @@ async function waitForServer() {
 
 export async function POST() {
   try {
+    console.log("[Restart Carven3] Verificando estado de Carven3...");
+    const isResponding = await checkCarven3Status();
+
+    if (isResponding) {
+      console.log("[Restart Carven3] Carven3 responde correctamente");
+      return NextResponse.json({
+        success: true,
+        message:
+          "Carven3 está respondiendo correctamente, no se requiere reinicio",
+        restarted: false,
+        status: "healthy",
+      });
+    }
+
     console.log("[Restart Carven3] Reiniciando servidor...");
     await rebootServer();
 
