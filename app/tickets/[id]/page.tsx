@@ -241,7 +241,6 @@ export default function TicketDetailPage() {
   }, [ticketId]);
 
   useEffect(() => {
-<<<<<<< HEAD
     if (!ticketId) return;
 
     const intervalId = window.setInterval(async () => {
@@ -311,8 +310,6 @@ export default function TicketDetailPage() {
   }, [ticketId, isAdmin, user?.nombre]);
 
   useEffect(() => {
-=======
->>>>>>> parent of 0490062 (Se ajusta el polling para la busqueda de tickets y se agrega polling al ticket/id)
     if (isEditing && editForm.plataforma) {
       const nuevosMotivos = getMotivosPorPlataforma(editForm.plataforma);
       setMotivosDisponibles(nuevosMotivos);

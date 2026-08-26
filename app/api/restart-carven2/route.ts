@@ -245,7 +245,7 @@ export async function POST(request: NextRequest) {
 
     const commands = [
       "cd /etc/init.d",
-      "./tomcat5 stop",
+      "./tomcat5 stop || true",
       "sleep 3",
       "./tomcat5 start",
     ];
