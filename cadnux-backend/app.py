@@ -33,7 +33,7 @@ ADMIN_DEPARTMENTS = os.getenv('ADMIN_DEPARTMENTS', '09').split(',')
 # Configuración del servidor
 PORT = int(os.getenv('PORT', 5001))
 HOST = os.getenv('HOST', '0.0.0.0')
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 JWT_EXPIRATION_HOURS = int(os.getenv('JWT_EXPIRATION_HOURS', 8))
 
 def get_db_connection():
@@ -85,12 +85,9 @@ def health():
 def login():
     """Endpoint de login"""
     try:
-        data = request.get_json(silent=True) or {}
+        data = request.json
         usuario_ch = data.get('usuario_ch')
         password_input = data.get('password')
-
-        if not usuario_ch or not password_input:
-            return jsonify({'error': 'Usuario y contraseña son requeridos'}), 400
         
         print(f"\n{'='*50}")
         print(f"📝 Login intento para: {usuario_ch}")
@@ -100,18 +97,19 @@ def login():
         if not conn:
             return jsonify({'error': 'Error de conexión a la base de datos'}), 500
         
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT emanombre, emaappaterno, emaapaterno, dpacvedepartamento,
-                          SELECT emanombre, emaappaterno, emaapmaterno, dpacvedepartamento,
-                           emffecbaja, emapassword, emallave
-                    FROM tbempleados
-                    WHERE emausuariocarven = %s
-                """, (usuario_ch,))
-                row = cursor.fetchone()
-        finally:
-            conn.close()
+        cursor = conn.cursor()
+        
+        # Consultar datos del usuario
+        cursor.execute("""
+            SELECT emanombre, emaappaterno, emaapmaterno, dpacvedepartamento, 
+                   emffecbaja, emapassword, emallave
+            FROM tbempleados 
+            WHERE emausuariocarven = %s
+        """, (usuario_ch,))
+        
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
         
         if not row:
             print(f"❌ Usuario no encontrado: {usuario_ch}")
