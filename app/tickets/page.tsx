@@ -244,7 +244,7 @@ export default function TicketsPage() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 ml-72 flex items-center justify-center">
+        <div className="flex-1 sidebar-content flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto mb-4" />
             <p className="text-white/60">Cargando tus tickets...</p>
@@ -258,8 +258,8 @@ export default function TicketsPage() {
     <div className="flex h-screen">
       <Sidebar />
 
-      <div className="flex-1 ml-72 flex flex-col">
-        <main className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 sidebar-content flex flex-col min-w-0">
+        <main className="flex-1 overflow-y-auto p-4 pt-20 sm:p-6 lg:p-8">
           <div className="mb-8">
             <div className="flex justify-between items-start flex-wrap gap-4">
               <div>
@@ -284,7 +284,7 @@ export default function TicketsPage() {
                 )}
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3 sm:justify-end">
                 <button
                   onClick={() => {
                     loadTickets();

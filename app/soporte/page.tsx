@@ -234,7 +234,7 @@ export default function SoportePage() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 ml-72 flex items-center justify-center">
+        <div className="flex-1 sidebar-content flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto mb-4" />
             <p className="text-white/60">Cargando panel de soporte...</p>
@@ -248,8 +248,8 @@ export default function SoportePage() {
     <div className="flex h-screen">
       <Sidebar />
 
-      <main className="flex-1 ml-72 overflow-y-auto">
-        <div className="p-8">
+      <main className="flex-1 sidebar-content overflow-y-auto min-w-0">
+        <div className="p-4 pt-20 sm:p-6 lg:p-8">
           <div className="mb-8">
             <div className="flex justify-between items-start flex-wrap gap-4">
               <div>
@@ -297,7 +297,7 @@ export default function SoportePage() {
                 />
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {["all", "abierto", "en_proceso", "resuelto"].map((status) => (
                   <button
                     key={status}

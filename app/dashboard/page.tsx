@@ -118,6 +118,7 @@ export default function DashboardPage() {
   const [newTicketMessage, setNewTicketMessage] = useState("");
   const [documentHidden, setDocumentHidden] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const celebratedMilestones = useRef(new Set<number>());
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -171,7 +172,7 @@ export default function DashboardPage() {
   }, []);
 
   const showNewTicketNotification = useCallback(
-    (newTicketsCount: number, lastTicket?: Ticket) => {
+    (newTicketsCount: number, lastTicket?: Ticket, milestone?: number) => {
       if (newTicketsCount > 0) {
         if (lastTicket) {
           playSoundByMotivo(lastTicket.motivo);
@@ -182,7 +183,17 @@ export default function DashboardPage() {
           audio.play().catch((e) => console.log("Error:", e));
         }
 
-        if (newTicketsCount === 1 && lastTicket) {
+        const milestoneMessages: Record<number, string> = {
+          700: "¡Felicidades, equipo! 700 tickets alcanzados. Estoy muy orgulloso de ustedes. Sigamos demostrando todo lo que podemos lograr juntos.\n\nAtt: IAN",
+          800: "¡Qué orgullo, equipo! Ya somos 800 tickets atendidos. Gracias por su compromiso, esfuerzo y dedicación.\n\nAtt: IAN",
+          900: "¡Increíble trabajo, equipo! Llegamos a 900 tickets. Cada uno de ustedes hace posible este logro.\n\nAtt: IAN",
+          1000: "¡Mil tickets, equipo! Este gran logro refleja su talento y constancia. Felicidades, estoy muy orgulloso de ustedes.\n\nAtt: IAN",
+        };
+
+        if (milestone && milestoneMessages[milestone]) {
+          setNewTicketMessage(milestoneMessages[milestone]);
+          showSystemNotification("¡Meta alcanzada!", milestoneMessages[milestone]);
+        } else if (newTicketsCount === 1 && lastTicket) {
           const message = `🎫 Nuevo ticket: ${lastTicket.ticket_id} - ${lastTicket.nombre}`;
           setNewTicketMessage(message);
           showSystemNotification("Nuevo Ticket", message);
@@ -207,7 +218,18 @@ export default function DashboardPage() {
 
         if (lastTicketCount > 0 && tickets.length > lastTicketCount) {
           const newTicketsCount = tickets.length - lastTicketCount;
-          showNewTicketNotification(newTicketsCount, tickets[0]);
+          const milestones = [700, 800, 900, 1000];
+          const reachedMilestone = milestones.find(
+            (milestone) =>
+              lastTicketCount < milestone &&
+              tickets.length >= milestone &&
+              !celebratedMilestones.current.has(milestone),
+          );
+
+          if (reachedMilestone) {
+            celebratedMilestones.current.add(reachedMilestone);
+          }
+          showNewTicketNotification(newTicketsCount, tickets[0], reachedMilestone);
         }
 
         setAllTickets(tickets);
@@ -248,9 +270,31 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!authLoading && !isAdmin) router.push("/tickets");
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Buenos días");
-    else if (hour < 18) setGreeting("Buenas tardes");
-    else setGreeting("Buenas noches");
+    const greetings =
+      hour < 12
+        ? [
+            "Buenos días, que tengas un excelente inicio",
+            "Buenos días, hoy será un gran día",
+            "Buenos días, gracias por estar aquí",
+            "Buenos días, que todo marche muy bien",
+            "Buenos días, empezamos con toda la energía",
+          ]
+        : hour < 18
+          ? [
+              "Buenas tardes, espero que todo vaya muy bien",
+              "Buenas tardes, sigamos avanzando juntos",
+              "Buenas tardes, qué gusto verte por aquí",
+              "Buenas tardes, vamos a cerrar el día con éxito",
+              "Buenas tardes, gracias por tu gran trabajo",
+            ]
+          : [
+              "Buenas noches, gracias por tu esfuerzo de hoy",
+              "Buenas noches, qué gusto tenerte por aquí",
+              "Buenas noches, terminemos el día de la mejor manera",
+              "Buenas noches, tu trabajo hace la diferencia",
+              "Buenas noches, excelente trabajo hasta ahora",
+            ];
+    setGreeting(greetings[Math.floor(Math.random() * greetings.length)]);
     const hoy = new Date();
     const hace30Dias = new Date();
     hace30Dias.setDate(hoy.getDate() - 30);
@@ -403,7 +447,7 @@ export default function DashboardPage() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 ml-72 flex items-center justify-center">
+        <div className="flex-1 sidebar-content flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto mb-4" />
             <p className="text-white/60">Cargando...</p>
@@ -451,8 +495,8 @@ export default function DashboardPage() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 ml-72 flex flex-col">
-        <main className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 sidebar-content flex flex-col min-w-0">
+        <main className="flex-1 overflow-y-auto p-4 pt-20 sm:p-6 lg:p-8">
           {/* NOTIFICACIÓN AMARILLA POPUP */}
           {showNotification && (
             <div className="fixed right-6 top-6 z-[9999] w-[min(420px,calc(100vw-3rem))] overflow-hidden rounded-2xl border border-cyan-300/30 bg-slate-900/95 shadow-2xl shadow-black/40 backdrop-blur-xl animate-fade-in">
@@ -464,7 +508,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300">Actividad nueva</p>
-                  <p className="mt-1 font-semibold text-white">{newTicketMessage}</p>
+                  <p className="mt-1 whitespace-pre-line font-semibold text-white">{newTicketMessage}</p>
                   <p className="mt-1 text-xs text-white/45">El panel se actualizará automáticamente.</p>
                 </div>
                 <button
@@ -480,7 +524,7 @@ export default function DashboardPage() {
 
           {/* Header */}
           <div className="mb-8">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <div className="flex items-center gap-3">
                   <div className="w-1 h-8 bg-primary-500 rounded-full" />
@@ -506,7 +550,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 lg:gap-6 mb-8">
             {statCards.map((stat, i) => (
               <div
                 key={i}
@@ -539,21 +583,21 @@ export default function DashboardPage() {
           </div>
 
           {/* Acciones */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <button
               onClick={() => setShowReportModal(true)}
               className="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30"
             >
               <FileText className="w-4 h-4 inline mr-2" /> Generar Reporte
             </button>
-            <div className="relative">
+              <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
               <input
                 type="text"
                 placeholder="Buscar por ID, nombre, CH o motivo..."
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="pl-9 pr-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-white w-64 focus:outline-none focus:border-primary-500"
+                className="w-full sm:w-64 pl-9 pr-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-white focus:outline-none focus:border-primary-500"
               />
             </div>
           </div>

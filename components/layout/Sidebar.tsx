@@ -14,8 +14,10 @@ import {
   LogOut,
   Headset,
   Shield,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const commonMenuItems = [
   { href: "/tickets", icon: Ticket, label: "Mis Tickets" },
@@ -33,7 +35,15 @@ export function Sidebar() {
   const { hasNewTickets: hasDashboardNew, reset: resetDashboard } =
     useDashboardNotifications();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.dataset.sidebarCollapsed = String(isCollapsed);
+    return () => {
+      delete document.documentElement.dataset.sidebarCollapsed;
+    };
+  }, [isCollapsed]);
 
   const userCh =
     user?.ch && user.ch !== "undefined" && user.ch !== "null" ? user.ch : null;
@@ -64,16 +74,36 @@ export function Sidebar() {
   };
 
   const handleNavClick = (href: string) => {
+    setIsMobileOpen(false);
     if (href === "/dashboard" && hasDashboardNew) {
       resetDashboard();
     }
   };
 
   return (
-    <aside
-      className={`fixed left-0 top-0 h-screen bg-gradient-to-b from-slate-900/95 to-slate-900/98 backdrop-blur-xl border-r border-white/10 z-50 transition-all duration-300
-        ${isCollapsed ? "w-20" : "w-72"}`}
-    >
+    <>
+      <button
+        type="button"
+        onClick={() => setIsMobileOpen(true)}
+        aria-label="Abrir menú"
+        className="fixed left-4 top-4 z-[60] flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-slate-900/90 text-white shadow-lg backdrop-blur-xl lg:hidden"
+      >
+        <span className="text-xl leading-none">≡</span>
+      </button>
+      {isMobileOpen && (
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          onClick={() => setIsMobileOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+        />
+      )}
+      <aside
+        className={`fixed left-0 top-0 h-screen w-72 bg-gradient-to-b from-slate-900/95 to-slate-900/98 backdrop-blur-xl border-r border-white/10 z-50 transition-all duration-300 ${
+          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0
+        ${isCollapsed ? "lg:w-20" : ""}`}
+      >
       <div className="flex flex-col h-full">
         <div
           className={`p-6 border-b border-white/10 ${isCollapsed ? "px-4" : ""}`}
@@ -99,7 +129,7 @@ export function Sidebar() {
         </div>
 
         <div
-          className={`mx-4 mt-6 p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-secondary-500/10 border border-white/10 ${isCollapsed ? "flex justify-center" : ""}`}
+          className={`mx-4 mt-6 rounded-xl border border-white/10 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 p-4 ${isCollapsed ? "mx-2 flex justify-center border-transparent bg-transparent p-0" : ""}`}
         >
           <div className="flex items-center gap-3">
             <div className="relative flex-shrink-0">
@@ -116,7 +146,7 @@ export function Sidebar() {
                 />
               )}
 
-              {isAdmin && (
+              {isAdmin && !isCollapsed && (
                 <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center z-10">
                   <Shield className="w-3 h-3 text-white" />
                 </div>
@@ -144,9 +174,16 @@ export function Sidebar() {
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-24 w-6 h-6 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-all duration-300 shadow-lg z-50"
+          type="button"
+          aria-label={isCollapsed ? "Expandir menú" : "Minimizar menú"}
+          title={isCollapsed ? "Expandir menú" : "Minimizar menú"}
+          className="absolute -right-4 top-16 hidden h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-slate-800 text-white/70 shadow-xl shadow-black/20 transition-all duration-300 hover:border-primary-400/60 hover:bg-primary-500 hover:text-white lg:flex z-50"
         >
-          {isCollapsed ? "→" : "←"}
+          {isCollapsed ? (
+            <PanelLeftOpen className="h-4 w-4" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4" />
+          )}
         </button>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -268,6 +305,7 @@ export function Sidebar() {
           animation: ping-fast 1.5s cubic-bezier(0, 0, 0.2, 1) infinite !important;
         }
       `}</style>
-    </aside>
+      </aside>
+    </>
   );
 }

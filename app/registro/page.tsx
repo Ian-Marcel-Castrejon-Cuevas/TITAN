@@ -806,14 +806,14 @@ export default function RegistroPage() {
     <div className="flex h-screen">
       <Sidebar />
 
-      <main className="flex-1 ml-72 overflow-y-auto">
+      <main className="flex-1 sidebar-content overflow-y-auto min-w-0">
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-          <div className="container mx-auto px-4 py-8 max-w-5xl">
+          <div className="container mx-auto px-4 py-20 sm:py-8 max-w-5xl">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg mb-4 animate-float">
                 <Zap className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
                 Nuevo Ticket de Soporte
               </h1>
               <p className="text-white/50 mt-2">
@@ -933,7 +933,7 @@ export default function RegistroPage() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="glass-card p-8">
+            <form onSubmit={handleSubmit} className="glass-card p-4 sm:p-8">
               {currentStep === 1 && (
                 <div className="space-y-6 animate-fade-in">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1090,7 +1090,7 @@ export default function RegistroPage() {
                 </div>
               )}
 
-              <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
+              <div className="flex flex-wrap justify-between gap-3 mt-8 pt-6 border-t border-white/10">
                 {currentStep > 1 && (
                   <button
                     type="button"
@@ -1103,7 +1103,7 @@ export default function RegistroPage() {
                   </button>
                 )}
 
-                <div className="flex gap-3 ml-auto">
+                <div className="flex flex-wrap gap-3 ml-auto">
                   {currentStep < 3 && (
                     <button
                       type="button"

@@ -553,7 +553,7 @@ export default function TicketDetailPage() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 ml-72 flex items-center justify-center">
+        <div className="flex-1 sidebar-content flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mx-auto mb-4" />
             <p className="text-white/60">Cargando ticket...</p>
@@ -576,8 +576,8 @@ export default function TicketDetailPage() {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
 
-        <main className="flex-1 ml-72 overflow-y-auto">
-          <div className="p-8">
+        <main className="flex-1 sidebar-content overflow-y-auto min-w-0">
+          <div className="p-4 pt-20 sm:p-6 lg:p-8">
             <button
               onClick={() => router.back()}
               className="flex items-center gap-2 text-white/60 hover:text-white mb-6 transition-colors"
@@ -590,10 +590,10 @@ export default function TicketDetailPage() {
               <div className="lg:col-span-2 space-y-6">
                 <div className="glass-card p-6">
                   <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       {getStatusIcon(ticket.estado)}
                       <div>
-                        <h1 className="text-2xl font-bold text-white">
+                        <h1 className="break-all text-2xl font-bold text-white">
                           {ticket.ticket_id}
                         </h1>
                         <p className="text-white/50 text-sm">

@@ -16,6 +16,21 @@
   body {
     @apply bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen;
   }
+
+  .sidebar-content {
+    margin-left: 0;
+    transition: margin-left 300ms ease;
+  }
+
+  @media (min-width: 1024px) {
+    .sidebar-content {
+      margin-left: 18rem;
+    }
+
+    :root[data-sidebar-collapsed="true"] .sidebar-content {
+      margin-left: 5rem;
+    }
+  }
 }
 
 @layer components {
