@@ -644,8 +644,6 @@ export default function RegistroPage() {
         setProgressMessage("Cerrando ticket automáticamente...");
         setProgress(progressValue);
 
-        await api.changeStatus(ticketCode, "cerrado");
-
         progressValue = 100;
         setProgressMessage("¡Proceso completado exitosamente!");
         setProgress(progressValue);
@@ -679,12 +677,6 @@ export default function RegistroPage() {
     } catch (error) {
       console.error("Error en el proceso:", error);
       toast.error("Error al procesar el reinicio de Carven");
-      try {
-        await api.changeStatus(ticketCode, "cerrado");
-        toast.success("El ticket se ha cerrado automáticamente");
-      } catch (closeError) {
-        console.error("Error al cerrar ticket:", closeError);
-      }
     } finally {
       setShowProgress(false);
       setIsProcessing(false);
@@ -723,7 +715,6 @@ export default function RegistroPage() {
       } else {
         if (formData.motivo === "Botar Carven") {
           await ejecutarBorrarCarven();
-          await api.changeStatus(ticketCode, "cerrado");
         }
 
         setTicketId(ticketCode);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
 
 const pool = new Pool({
   host: process.env.PG_HOST || "192.168.8.55",
@@ -26,14 +26,17 @@ const pool = new Pool({
  * await fetch('/api/delete-carven', { method: 'POST' })
  */
 export async function POST() {
+  let client: PoolClient | undefined;
+
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
     await client.query(
       "DELETE FROM tbingresos WHERE infingreso >= CURRENT_DATE",
     );
-    client.release();
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ success: false });
+  } finally {
+    client?.release();
   }
 }

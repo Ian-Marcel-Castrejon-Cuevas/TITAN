@@ -67,9 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkSession = async () => {
     const response = await fetch("/api/auth/session", { cache: "no-store" });
     if (!response.ok) {
-      clearLocalSession();
-      window.location.href = "/login";
-      return;
+      if (response.status === 401) {
+        clearLocalSession();
+        window.location.href = "/login";
+      }
+      throw new Error(`Error al comprobar la sesión: ${response.status}`);
     }
 
     const data = await response.json();
@@ -95,9 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         departamento: userDepartamento ? parseInt(userDepartamento) : undefined,
         es_admin: userEsAdmin,
       });
-      checkSession().catch(() => {
-        clearLocalSession();
-        window.location.href = "/login";
+      checkSession().catch((error) => {
+        console.error("No se pudo comprobar la sesión:", error);
       });
     }
     setIsLoading(false);
@@ -197,9 +198,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const confirmSession = async () => {
     const response = await fetch("/api/auth/session", { method: "POST" });
     if (!response.ok) {
-      clearLocalSession();
-      window.location.href = "/login";
-      return;
+      if (response.status === 401) {
+        clearLocalSession();
+        window.location.href = "/login";
+        return;
+      }
+      throw new Error(`No se pudo confirmar la sesión: ${response.status}`);
     }
     setSessionPrompt(false);
     setPromptSecondsLeft(600);

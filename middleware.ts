@@ -46,22 +46,42 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    const sessionResponse = await fetch(
-      new URL("/api/auth/session", request.url),
-      {
-        headers: { cookie: request.headers.get("cookie") || "" },
-        cache: "no-store",
-      },
-    );
+    let sessionResponse: Response;
+    try {
+      sessionResponse = await fetch(
+        new URL("/api/auth/session", request.url),
+        {
+          headers: { cookie: request.headers.get("cookie") || "" },
+          cache: "no-store",
+        },
+      );
+    } catch {
+      if (isApiRoute) {
+        return NextResponse.json(
+          { success: false, error: "Servicio de sesión no disponible" },
+          { status: 503 },
+        );
+      }
+      return NextResponse.next();
+    }
 
     if (!sessionResponse.ok) {
-      if (isApiRoute) {
+      if (sessionResponse.status === 401 && isApiRoute) {
         return NextResponse.json(
           { success: false, error: "Sesión inválida o expirada" },
           { status: 401 },
         );
       }
-      return NextResponse.redirect(new URL("/login", request.url));
+      if (sessionResponse.status === 401) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+      if (isApiRoute) {
+        return NextResponse.json(
+          { success: false, error: "Servicio de sesión no disponible" },
+          { status: 503 },
+        );
+      }
+      return NextResponse.next();
     }
 
     const isAdminRoute = adminRoutes.some((route) =>
@@ -90,6 +110,7 @@ export const config = {
     "/login",
     "/api/tickets/:path*",
     "/api/notifications/:path*",
+    "/api/buscar-usuario/:path*",
     "/api/empleados/:path*",
     "/api/delete-carven/:path*",
     "/api/restart-carven1/:path*",

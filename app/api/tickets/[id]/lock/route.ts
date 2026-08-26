@@ -16,8 +16,15 @@ export async function POST(
     return NextResponse.json({ success: false, error: "Solo los administradores pueden tomar tickets" }, { status: 403 });
   }
 
+  const { id: ticketId } = await params;
+  if (new URL(request.url).searchParams.get("action") === "release") {
+    return NextResponse.json({
+      success: true,
+      released: releaseTicketLock(ticketId, user.ch),
+    });
+  }
+
   try {
-    const { id: ticketId } = await params;
     const pool = await getSqlConnection();
     const ticket = await pool
       .request()

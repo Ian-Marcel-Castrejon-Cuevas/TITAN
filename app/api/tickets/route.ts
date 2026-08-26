@@ -90,6 +90,12 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     const ticketId = generateTicketId();
+    const isCarvenOperation = [
+      "Botar Carven",
+      "Levantar Carven1",
+      "Levantar Carven2",
+    ].includes(data.motivo);
+    const estadoInicial = isCarvenOperation ? "cerrado" : "abierto";
 
     const pool = await getSqlConnection();
 
@@ -104,22 +110,32 @@ export async function POST(request: NextRequest) {
       .input("motivo", data.motivo)
       .input("puesto", data.puesto)
       .input("descripcion", data.descripcion)
-      .input("creado_por", data.creado_por || data.ch).query(`
+      .input("creado_por", data.creado_por || data.ch)
+      .input("estado", estadoInicial)
+      .input("atendido_por", isCarvenOperation ? "Sistema" : null).query(`
         INSERT INTO tickets (
           ticket_id, ch, nombre, nodo, cartera, plataforma, 
           motivo, puesto, descripcion, estado, 
-          fecha_creacion, fecha_actualizacion, creado_por
+          fecha_creacion, fecha_actualizacion, fecha_cerrado, creado_por,
+          atendido_por
         ) VALUES (
           @ticket_id, @ch, @nombre, @nodo, @cartera, @plataforma,
-          @motivo, @puesto, @descripcion, 'abierto',
-          GETDATE(), GETDATE(), @creado_por
+          @motivo, @puesto, @descripcion, @estado,
+          GETDATE(), GETDATE(),
+          CASE WHEN @estado = 'cerrado' THEN GETDATE() ELSE NULL END,
+          @creado_por, @atendido_por
         )
       `);
 
     await pool
       .request()
       .input("ticket_id", ticketId)
-      .input("content", `Ticket creado. Motivo: ${data.motivo}`)
+      .input(
+        "content",
+        isCarvenOperation
+          ? `Ticket creado y cerrado automáticamente por Sistema. Motivo: ${data.motivo}`
+          : `Ticket creado. Motivo: ${data.motivo}`,
+      )
       .input("author", "Sistema").query(`
         INSERT INTO ticket_notes (ticket_id, note_type, content, author, tags, fecha_creacion)
         VALUES (@ticket_id, 'creacion', @content, @author, 'creado,sistema', GETDATE())

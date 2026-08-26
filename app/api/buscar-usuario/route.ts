@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
 
 const pool = new Pool({
   host: process.env.PG_HOST,
@@ -11,6 +11,8 @@ const pool = new Pool({
 });
 
 export async function GET(request: NextRequest) {
+  let client: PoolClient | undefined;
+
   /**
    * Busca un usuario por su CH en PostgreSQL.
    *
@@ -39,7 +41,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const client = await pool.connect();
+    client = await pool.connect();
 
     const result = await client.query(
       `SELECT 
@@ -56,8 +58,6 @@ export async function GET(request: NextRequest) {
    AND (emffecbaja = '0001-01-01' OR emffecbaja IS NULL)`,
       [ch.toUpperCase()],
     );
-
-    client.release();
 
     if (result.rows.length === 0) {
       return NextResponse.json({ success: false, usuario: null });
@@ -80,5 +80,7 @@ export async function GET(request: NextRequest) {
       { success: false, error: String(error) },
       { status: 500 },
     );
+  } finally {
+    client?.release();
   }
 }

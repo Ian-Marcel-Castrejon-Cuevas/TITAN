@@ -4,6 +4,7 @@ import {
   destroySession,
   getSessionStatus,
 } from "@/lib/session-store";
+import { releaseTicketLocksByOwner } from "@/lib/ticket-locks";
 
 export const runtime = "nodejs";
 
@@ -46,7 +47,11 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const sessionId = request.cookies.get(SESSION_COOKIE)?.value;
-  if (sessionId) destroySession(sessionId);
+  if (sessionId) {
+    const session = getSessionStatus(sessionId);
+    if (session) releaseTicketLocksByOwner(session.user.ch);
+    destroySession(sessionId);
+  }
 
   const response = NextResponse.json({ success: true });
   response.cookies.set(SESSION_COOKIE, "", {

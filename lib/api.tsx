@@ -75,22 +75,23 @@ class API {
       });
 
       if (!response.ok) {
-        if (response.status === 401 || response.status >= 500) {
-          expireSession(response.status === 401 ? "session-expired" : "server-unavailable");
-        }
         const error = await response
           .json()
           .catch(() => ({ error: "Error en la solicitud" }));
+
+        if (response.status === 401) {
+          expireSession("session-expired");
+        }
+
         throw new Error(error.error || `Error ${response.status}`);
       }
 
       return response.json();
     } catch (error) {
       console.error("Fetch error:", error);
-      if (endpoint !== "/api/auth/login") {
-        expireSession("server-unavailable");
-      }
-      throw new Error("No se pudo conectar con el servidor");
+      throw error instanceof Error
+        ? error
+        : new Error("No se pudo conectar con el servidor");
     }
   }
 

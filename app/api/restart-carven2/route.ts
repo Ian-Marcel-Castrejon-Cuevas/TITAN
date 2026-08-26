@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { exec } from "child_process";
 import { promisify } from "util";
 import axios from "axios";
@@ -164,7 +164,7 @@ async function testSSHConnection(): Promise<{
   }
 }
 
-async function ejecutarBotarCarven(): Promise<boolean> {
+async function ejecutarBotarCarven(cookie: string): Promise<boolean> {
   /**
    * Invoca el endpoint interno `/api/delete-carven` para ejecutar la limpieza local de Carven2.
    *
@@ -180,6 +180,7 @@ async function ejecutarBotarCarven(): Promise<boolean> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        cookie,
       },
     });
     return response.ok;
@@ -189,7 +190,7 @@ async function ejecutarBotarCarven(): Promise<boolean> {
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   /**
    * Endpoint que reinicia Carven2 si no responde: verifica estado, prueba SSH y ejecuta reinicio remoto.
    *
@@ -259,7 +260,9 @@ export async function POST() {
     }
 
     console.log("[Restart Carven2] Ejecutando Botar Carven...");
-    const botarCarvenExitoso = await ejecutarBotarCarven();
+    const botarCarvenExitoso = await ejecutarBotarCarven(
+      request.headers.get("cookie") || "",
+    );
 
     if (botarCarvenExitoso) {
       console.log("[Restart Carven2] Botar Carven ejecutado exitosamente");

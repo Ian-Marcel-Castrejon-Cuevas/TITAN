@@ -297,10 +297,15 @@ export default function TicketDetailPage() {
     return () => {
       active = false;
       window.clearInterval(heartbeatId);
-      void fetch(`/api/tickets/${ticketId}/lock`, {
-        method: "DELETE",
-        keepalive: true,
-      }).catch(() => undefined);
+      const releaseUrl = `/api/tickets/${ticketId}/lock?action=release`;
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(releaseUrl);
+      } else {
+        void fetch(releaseUrl, {
+          method: "POST",
+          keepalive: true,
+        }).catch(() => undefined);
+      }
     };
   }, [ticketId, isAdmin, user?.nombre]);
 

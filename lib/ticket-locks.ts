@@ -77,6 +77,21 @@ export function releaseTicketLock(ticketId: string, ownerCh: string) {
   return true;
 }
 
+export function releaseTicketLocksByOwner(ownerCh: string) {
+  const locks = readLocks();
+  let released = 0;
+
+  for (const [ticketId, lock] of Object.entries(locks)) {
+    if (lock.ownerCh === ownerCh) {
+      delete locks[ticketId];
+      released += 1;
+    }
+  }
+
+  if (released > 0) writeLocks(locks);
+  return released;
+}
+
 export function hasTicketLock(ticketId: string, ownerCh: string) {
   const locks = readLocks();
   const changed = removeExpiredLocks(locks);

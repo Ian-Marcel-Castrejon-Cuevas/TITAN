@@ -1,0 +1,44 @@
+[2026-08-26T20:24:41.759Z] Error al obtener tickets: Error: Faltan variables de entorno para SQL Server: SQL_SERVER y SQL_DATABASE son requeridas
+    at a (C:\Users\cmartinez\Documents\TITAN\.next\server\app\api\empleados\foto\route.js:1:4255)
+    at d (C:\Users\cmartinez\Documents\TITAN\.next\server\app\api\tickets\route.js:1:2982)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:59:14)
+    at tr.do (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:18:17587)
+    at C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:18:23654
+    at C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\server\lib\trace\tracer.js:169:36
+    at NoopContextManager.with (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:7062)
+    at ContextAPI.with (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:518)
+    at NoopTracer.startActiveSpan (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18093)
+    at ProxyTracer.startActiveSpan (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18854)
+[2026-08-26T20:24:41.779Z] Error al obtener tickets: Error: Faltan variables de entorno para SQL Server: SQL_SERVER y SQL_DATABASE son requeridas
+    at a (C:\Users\cmartinez\Documents\TITAN\.next\server\app\api\empleados\foto\route.js:1:4255)
+    at d (C:\Users\cmartinez\Documents\TITAN\.next\server\app\api\tickets\route.js:1:2982)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:59:14)
+    at tr.do (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:18:17587)
+    at C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:18:23654
+    at C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\server\lib\trace\tracer.js:169:36
+    at NoopContextManager.with (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:7062)
+    at ContextAPI.with (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:518)
+    at NoopTracer.startActiveSpan (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18093)
+    at ProxyTracer.startActiveSpan (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18854)
+[2026-08-26T20:24:46.749Z] Error al obtener tickets: Error: Faltan variables de entorno para SQL Server: SQL_SERVER y SQL_DATABASE son requeridas
+    at a (C:\Users\cmartinez\Documents\TITAN\.next\server\app\api\empleados\foto\route.js:1:4255)
+    at d (C:\Users\cmartinez\Documents\TITAN\.next\server\app\api\tickets\route.js:1:2982)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:59:14)
+    at tr.do (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:18:17587)
+    at C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:18:23654
+    at C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\server\lib\trace\tracer.js:169:36
+    at NoopContextManager.with (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:7062)
+    at ContextAPI.with (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:518)
+    at NoopTracer.startActiveSpan (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18093)
+    at ProxyTracer.startActiveSpan (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18854)
+[2026-08-26T20:24:46.760Z] Error al obtener tickets: Error: Faltan variables de entorno para SQL Server: SQL_SERVER y SQL_DATABASE son requeridas
+    at a (C:\Users\cmartinez\Documents\TITAN\.next\server\app\api\empleados\foto\route.js:1:4255)
+    at d (C:\Users\cmartinez\Documents\TITAN\.next\server\app\api\tickets\route.js:1:2982)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:59:14)
+    at tr.do (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:18:17587)
+    at C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\next-server\app-route.runtime.prod.js:18:23654
+    at C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\server\lib\trace\tracer.js:169:36
+    at NoopContextManager.with (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:7062)
+    at ContextAPI.with (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:518)
+    at NoopTracer.startActiveSpan (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18093)
+    at ProxyTracer.startActiveSpan (C:\Users\cmartinez\Documents\TITAN\node_modules\next\dist\compiled\@opentelemetry\api\index.js:1:18854)
