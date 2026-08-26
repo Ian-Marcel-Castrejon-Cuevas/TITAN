@@ -15,7 +15,7 @@ const SSH_OPTIONS2 = [
   "-o HostKeyAlgorithms=+ssh-rsa",
   "-o StrictHostKeyChecking=no",
   "-o UserKnownHostsFile=/dev/null",
-  `-p ${SSH_PORT2}`
+  `-p ${SSH_PORT2}`,
 ].join(" ");
 
 async function checkCarven2Status(): Promise<boolean> {
@@ -38,7 +38,7 @@ async function checkCarven2Status(): Promise<boolean> {
         signal: controller.signal,
         timeout: 15000,
         validateStatus: () => true,
-      }
+      },
     );
 
     clearTimeout(timeoutId);
@@ -50,7 +50,7 @@ async function checkCarven2Status(): Promise<boolean> {
 }
 
 async function executeSSHCommands(
-  commands: string[]
+  commands: string[],
 ): Promise<{ output: string; error: string }> {
   /**
    * Ejecuta comandos remotos vía SSH usando `sshpass` y `ssh` para Carven2.
@@ -69,13 +69,19 @@ async function executeSSHCommands(
    */
   try {
     if (!SSH_PASS2) {
-      throw new Error("SSH_PASS2 no está configurado en las variables de entorno");
+      throw new Error(
+        "SSH_PASS2 no está configurado en las variables de entorno",
+      );
     }
     if (!SSH_USER2) {
-      throw new Error("SSH_USER2 no está configurado en las variables de entorno");
+      throw new Error(
+        "SSH_USER2 no está configurado en las variables de entorno",
+      );
     }
     if (!SSH_HOST2) {
-      throw new Error("SSH_HOST2 no está configurado en las variables de entorno");
+      throw new Error(
+        "SSH_HOST2 no está configurado en las variables de entorno",
+      );
     }
 
     const commandString = commands.join(" && ");
@@ -117,13 +123,19 @@ async function testSSHConnection(): Promise<{
    */
   try {
     if (!SSH_PASS2) {
-      throw new Error("SSH_PASS2 no está configurado en las variables de entorno");
+      throw new Error(
+        "SSH_PASS2 no está configurado en las variables de entorno",
+      );
     }
     if (!SSH_USER2) {
-      throw new Error("SSH_USER2 no está configurado en las variables de entorno");
+      throw new Error(
+        "SSH_USER2 no está configurado en las variables de entorno",
+      );
     }
     if (!SSH_HOST2) {
-      throw new Error("SSH_HOST2 no está configurado en las variables de entorno");
+      throw new Error(
+        "SSH_HOST2 no está configurado en las variables de entorno",
+      );
     }
 
     const testCommand = `sshpass -p '${SSH_PASS2}' ssh ${SSH_OPTIONS2} ${SSH_USER2}@${SSH_HOST2} "echo 'Conexión exitosa a Carven2 - Prueba'"`;
@@ -195,7 +207,10 @@ export async function POST() {
 
     const testResult = await testSSHConnection();
     if (!testResult.success) {
-      console.error("[Restart Carven2] Error en conexión SSH:", testResult.error);
+      console.error(
+        "[Restart Carven2] Error en conexión SSH:",
+        testResult.error,
+      );
       return NextResponse.json(
         {
           success: false,
@@ -204,7 +219,7 @@ export async function POST() {
           botarCarven: false,
           error: testResult.error,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
     console.log("[Restart Carven2] Conexión SSH exitosa");
@@ -215,14 +230,17 @@ export async function POST() {
       console.log("[Restart Carven2] Carven2 responde correctamente");
       return NextResponse.json({
         success: true,
-        message: "Carven2 está respondiendo correctamente, no se requiere reinicio",
+        message:
+          "Carven2 está respondiendo correctamente, no se requiere reinicio",
         restarted: false,
         botarCarven: false,
         status: "healthy",
       });
     }
 
-    console.log("[Restart Carven2] Carven2 no responde, procediendo con reinicio...");
+    console.log(
+      "[Restart Carven2] Carven2 no responde, procediendo con reinicio...",
+    );
 
     const commands = [
       "cd /etc/init.d",
@@ -267,7 +285,7 @@ export async function POST() {
         botarCarven: false,
         error: error instanceof Error ? error.message : "Error desconocido",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
