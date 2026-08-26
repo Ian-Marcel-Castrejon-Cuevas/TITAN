@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Footer } from "@/components/layout/Footer";
@@ -230,6 +230,9 @@ export default function TicketDetailPage() {
   const [editNote, setEditNote] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [motivosDisponibles, setMotivosDisponibles] = useState<string[]>([]);
+  const [lockAcquired, setLockAcquired] = useState(!isAdmin);
+  const [lockOwnerName, setLockOwnerName] = useState("");
+  const lastUpdatedAt = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (ticketId) {
@@ -244,8 +247,11 @@ export default function TicketDetailPage() {
       try {
         const response = await api.getTicket(ticketId);
         if (response.success && response.ticket) {
-          setTicket(response.ticket);
-          setNotes(response.notes || []);
+          if (response.ticket.updated_at !== lastUpdatedAt.current) {
+            lastUpdatedAt.current = response.ticket.updated_at;
+            setTicket(response.ticket);
+            setNotes(response.notes || []);
+          }
         }
       } catch {
         // La capa API gestiona la expiración de sesión y los errores de conexión.
@@ -254,6 +260,49 @@ export default function TicketDetailPage() {
 
     return () => window.clearInterval(intervalId);
   }, [ticketId]);
+
+  useEffect(() => {
+    if (!ticketId || !isAdmin) return;
+
+    let active = true;
+    const acquire = async () => {
+      try {
+        const response = await fetch(`/api/tickets/${ticketId}/lock`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        const data = await response.json();
+        if (!active) return;
+        if (response.ok) {
+          setLockAcquired(true);
+          setLockOwnerName(data.lock?.ownerName || user?.nombre || "");
+        } else {
+          setLockAcquired(false);
+          setLockOwnerName(data.error || "otro administrador");
+          toast.error(data.error || "Otro administrador ya tomó este ticket");
+        }
+      } catch {
+        if (active) {
+          setLockAcquired(false);
+          toast.error("No se pudo reservar el ticket");
+        }
+      }
+    };
+
+    void acquire();
+    const heartbeatId = window.setInterval(() => {
+      void acquire();
+    }, 30_000);
+
+    return () => {
+      active = false;
+      window.clearInterval(heartbeatId);
+      void fetch(`/api/tickets/${ticketId}/lock`, {
+        method: "DELETE",
+        keepalive: true,
+      }).catch(() => undefined);
+    };
+  }, [ticketId, isAdmin, user?.nombre]);
 
   useEffect(() => {
     if (isEditing && editForm.plataforma) {
@@ -270,6 +319,7 @@ export default function TicketDetailPage() {
       setLoading(true);
       const response = await api.getTicket(ticketId);
       if (response.success && response.ticket) {
+        lastUpdatedAt.current = response.ticket.updated_at;
         setTicket(response.ticket);
         setNotes(response.notes || []);
         setEditForm({
@@ -374,6 +424,7 @@ export default function TicketDetailPage() {
       }
 
       toast.success(`Estado cambiado a: ${statusText}`);
+      if (newStatus === "cerrado") setLockAcquired(false);
       loadTicket();
     } catch {
       toast.error("Error al cambiar estado");
@@ -509,10 +560,11 @@ export default function TicketDetailPage() {
 
   if (!ticket) return null;
 
+  const adminCanManageTicket = isAdmin && lockAcquired;
+  const ticketLockedByAnotherAdmin = isAdmin && !lockAcquired;
+
   const showDeleteButton =
-    ticket.estado === "abierto" ||
-    (isAdmin &&
-      (ticket.estado === "en_proceso" || ticket.estado === "resuelto"));
+    (!isAdmin && ticket.estado === "abierto") || (isAdmin && adminCanManageTicket);
 
   return (
     <div className="flex flex-col h-screen">
@@ -546,7 +598,7 @@ export default function TicketDetailPage() {
                     </div>
 
                     <div className="flex gap-2 flex-wrap">
-                      {!isEditing && isAdmin && (
+                      {!isEditing && adminCanManageTicket && (
                         <button
                           onClick={handleEditTicket}
                           className="px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
@@ -558,7 +610,7 @@ export default function TicketDetailPage() {
                       {showDeleteButton && (
                         <button
                           onClick={handleDeleteTicket}
-                          disabled={deleting}
+                          disabled={deleting || (isAdmin && !adminCanManageTicket)}
                           className="px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
                         >
                           {deleting ? "Eliminando..." : "Eliminar Ticket"}
@@ -568,16 +620,25 @@ export default function TicketDetailPage() {
                       {isAdmin && ticket.estado === "abierto" && (
                         <button
                           onClick={() => handleChangeStatus("en_proceso")}
-                          disabled={updating}
+                          disabled={updating || !adminCanManageTicket}
                           className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors disabled:opacity-50"
                         >
                           {updating ? "Procesando..." : "Tomar en Proceso"}
                         </button>
                       )}
+                      {isAdmin && ticket.estado === "cerrado" && (
+                        <button
+                          onClick={() => handleChangeStatus("en_proceso")}
+                          disabled={updating || !adminCanManageTicket}
+                          className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors disabled:opacity-50"
+                        >
+                          {updating ? "Procesando..." : "Reabrir y Tomar"}
+                        </button>
+                      )}
                       {isAdmin && ticket.estado === "en_proceso" && (
                         <button
                           onClick={() => handleChangeStatus("resuelto")}
-                          disabled={updating}
+                          disabled={updating || !adminCanManageTicket}
                           className="px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors disabled:opacity-50"
                         >
                           {updating ? "Procesando..." : "Marcar como Resuelto"}
@@ -586,7 +647,7 @@ export default function TicketDetailPage() {
                       {isAdmin && ticket.estado === "resuelto" && (
                         <button
                           onClick={() => handleChangeStatus("cerrado")}
-                          disabled={updating}
+                          disabled={updating || !adminCanManageTicket}
                           className="px-4 py-2 rounded-lg bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 transition-colors disabled:opacity-50"
                         >
                           {updating ? "Procesando..." : "Cerrar Ticket"}
@@ -600,6 +661,12 @@ export default function TicketDetailPage() {
                   >
                     {getEstadoTexto(ticket.estado)}
                   </div>
+
+                  {ticketLockedByAnotherAdmin && (
+                    <div className="mt-4 rounded-xl border border-orange-400/30 bg-orange-400/10 px-4 py-3 text-sm text-orange-200">
+                      Este ticket está siendo gestionado por {lockOwnerName || "otro administrador"}. Las acciones se habilitarán cuando lo libere.
+                    </div>
+                  )}
                 </div>
 
                 <div className="glass-card p-6">

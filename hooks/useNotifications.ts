@@ -1,12 +1,12 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useAuth } from './useAuth';
+import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "./useAuth";
 
-interface Notification {
+export interface Notification {
   id: number;
   user_ch: string | null;
   departamento: string | null;
   ticket_id: string;
-  type: 'note' | 'status' | 'assign';
+  type: "note" | "status" | "assign";
   message: string;
   is_read: boolean;
   created_by: string;
@@ -88,50 +88,71 @@ export function useNotifications() {
 
     try {
       const departamentoNombre = DEPARTAMENTOS[user.departamento] || "Otros";
-      
+
       const response = await fetch(
-        `/api/notifications?user_ch=${encodeURIComponent(user.ch)}&departamento=${encodeURIComponent(departamentoNombre)}&only_unread=true`
+        `/api/notifications?user_ch=${encodeURIComponent(user.ch)}&departamento=${encodeURIComponent(departamentoNombre)}&only_unread=true`,
       );
       const data = await response.json();
-      
+
       if (data.success) {
         const unreadNotifs = data.notifications || [];
         const hasNew = unreadNotifs.length > 0;
-        
+
         setUnreadCount(unreadNotifs.length);
         setHasUnread(hasNew);
         setNotifications(unreadNotifs);
-        
+
         if (hasNew) {
-          console.log(`🔔 ${unreadNotifs.length} notificación(es) nueva(s) para ${departamentoNombre}`);
+          console.log(
+            `🔔 ${unreadNotifs.length} notificación(es) nueva(s) para ${departamentoNombre}`,
+          );
         }
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
     }
   }, [user?.ch, user?.departamento]);
 
-  const markAsRead = useCallback(async (notificationIds?: number[]) => {
-    if (!user?.ch) return;
+  const markAsRead = useCallback(
+    async (notificationIds?: number[]) => {
+      if (!user?.ch) return;
 
-    try {
-      await fetch('/api/notifications', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(notificationIds ? { notification_ids: notificationIds } : { mark_all: true })
-      });
-      
-      setHasUnread(false);
-      setUnreadCount(0);
-      setNotifications([]);
-    } catch (error) {
-      console.error('Error marking as read:', error);
-    }
-  }, [user?.ch]);
+      try {
+        await fetch("/api/notifications", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            notificationIds
+              ? { notification_ids: notificationIds }
+              : { mark_all: true },
+          ),
+        });
+
+        if (notificationIds?.length) {
+          const idsToRemove = new Set(notificationIds);
+          setNotifications((previous) => {
+            const remaining = previous.filter(
+              (notification) => !idsToRemove.has(notification.id),
+            );
+            setUnreadCount(remaining.length);
+            setHasUnread(remaining.length > 0);
+            return remaining;
+          });
+        } else {
+          setHasUnread(false);
+          setUnreadCount(0);
+          setNotifications([]);
+        }
+      } catch (error) {
+        console.error("Error marking as read:", error);
+      }
+    },
+    [user?.ch],
+  );
 
   useEffect(() => {
     if (!user?.ch || !user?.departamento) return;
-    
+
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 5000);
     return () => clearInterval(interval);
@@ -142,6 +163,6 @@ export function useNotifications() {
     unreadCount,
     notifications,
     markAsRead,
-    fetchNotifications
+    fetchNotifications,
   };
 }

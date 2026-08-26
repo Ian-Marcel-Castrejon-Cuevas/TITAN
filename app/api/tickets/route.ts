@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSqlConnection, generateTicketId } from "@/lib/db_sqlserver";
+import { getRequestUser } from "@/lib/request-auth";
+import { logError } from "@/lib/error-log";
 
 /**
  * Obtiene la lista completa de tickets.
@@ -17,26 +19,49 @@ import { getSqlConnection, generateTicketId } from "@/lib/db_sqlserver";
  * Ejemplo:
  * await fetch('/api/tickets')
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const pool = await getSqlConnection();
+    const user = getRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Sesión requerida" }, { status: 401 });
+    }
 
-    const result = await pool.request().query(`
+    const scope = new URL(request.url).searchParams.get("scope") || "all";
+    const userRequestsOwnTickets = scope === "mine";
+    const pool = await getSqlConnection();
+    const dbRequest = pool.request();
+    let ownerFilter = "";
+
+    if (!user.es_admin && scope === "all") {
+      return NextResponse.json(
+        { success: false, error: "No tienes permiso para consultar todos los tickets" },
+        { status: 403 },
+      );
+    }
+
+    if (userRequestsOwnTickets) {
+      ownerFilter = "WHERE (creado_por = @user_ch OR (creado_por IS NULL AND ch = @user_ch))";
+      dbRequest.input("user_ch", user.ch);
+    }
+
+    const result = await dbRequest.query(`
       SELECT 
         ticket_id, ch, nombre, nodo, cartera, plataforma, 
         motivo, puesto, descripcion, estado, 
         fecha_creacion as fecha,
+        fecha_actualizacion as updated_at,
         fecha_procesado,
         fecha_resuelto,
         fecha_cerrado,
         creado_por
-      FROM tickets 
+      FROM tickets
+      ${ownerFilter}
       ORDER BY fecha_creacion DESC
     `);
 
     return NextResponse.json({ success: true, tickets: result.recordset });
   } catch (error) {
-    console.error("Error al obtener tickets:", error);
+    logError("Error al obtener tickets", error);
     return NextResponse.json(
       { success: false, error: "Error al obtener tickets" },
       { status: 500 },
@@ -102,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, ticketCode: ticketId });
   } catch (error) {
-    console.error("Error al crear ticket:", error);
+    logError("Error al crear ticket", error);
     return NextResponse.json(
       { success: false, error: "Error al crear ticket" },
       { status: 500 },

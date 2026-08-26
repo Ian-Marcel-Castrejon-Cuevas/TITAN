@@ -37,6 +37,7 @@ export interface Ticket {
   descripcion: string;
   estado: "abierto" | "en_proceso" | "resuelto" | "cerrado";
   fecha: string;
+  updated_at?: string;
   fecha_procesado?: string;
   fecha_resuelto?: string;
   fecha_cerrado?: string;
@@ -93,8 +94,10 @@ class API {
     }
   }
 
-  async getTickets(): Promise<{ success: boolean; tickets: Ticket[] }> {
-    return this.request("/api/tickets");
+  async getTickets(
+    scope: "mine" | "all" = "all",
+  ): Promise<{ success: boolean; tickets: Ticket[] }> {
+    return this.request(`/api/tickets?scope=${scope}`);
   }
 
   async getTicket(

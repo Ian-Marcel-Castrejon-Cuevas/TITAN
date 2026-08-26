@@ -29,7 +29,7 @@ const adminOnlyItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { user, isAdmin, logout } = useAuth();
-  const { hasUnread: hasMisTicketsUnread, markAsRead } = useNotifications();
+  const { hasUnread: hasMisTicketsUnread } = useNotifications();
   const { hasNewTickets: hasDashboardNew, reset: resetDashboard } =
     useDashboardNotifications();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -66,9 +66,6 @@ export function Sidebar() {
   const handleNavClick = (href: string) => {
     if (href === "/dashboard" && hasDashboardNew) {
       resetDashboard();
-    }
-    if (href === "/tickets" && hasMisTicketsUnread) {
-      markAsRead();
     }
   };
 

@@ -11,7 +11,7 @@ export function useDashboardNotifications() {
     if (!isAdmin) return false;
 
     try {
-      const response = await api.getTickets();
+      const response = await api.getTickets("all");
       const currentCount = response.tickets.length;
       
       if (lastCount === 0) {

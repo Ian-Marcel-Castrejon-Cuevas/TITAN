@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { api, Ticket } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationCenter } from "@/components/ui/NotificationCenter";
 import {
   Search,
   Ticket as TicketIcon,
@@ -194,15 +195,8 @@ export default function TicketsPage() {
   const loadTickets = async () => {
     try {
       setLoading(true);
-      const response = await api.getTickets();
-      let userTickets = response.tickets || [];
-
-      if (user?.departamento) {
-        const deptoNombre = DEPARTAMENTOS[user.departamento];
-        userTickets = userTickets.filter(
-          (ticket) => ticket.cartera === deptoNombre,
-        );
-      }
+      const response = await api.getTickets("mine");
+      const userTickets = response.tickets || [];
 
       setTickets(userTickets);
     } catch {
@@ -238,6 +232,12 @@ export default function TicketsPage() {
         fetchNotifications();
       }, 500);
     }
+  };
+
+  const handleNotificationOpen = async (
+    notification: (typeof notifications)[number],
+  ) => {
+    await markAsRead([notification.id]);
   };
 
   if (authLoading || loading) {
@@ -319,6 +319,12 @@ export default function TicketsPage() {
               </div>
             </div>
           </div>
+
+          <NotificationCenter
+            notifications={notifications}
+            onMarkAllRead={() => markAsRead()}
+            onOpen={handleNotificationOpen}
+          />
 
           <div className="glass-card p-4 mb-6">
             <div className="flex flex-col md:flex-row gap-4">

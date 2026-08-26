@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSqlConnection } from "@/lib/db_sqlserver";
+import { getRequestUser } from "@/lib/request-auth";
+import { hasTicketLock, releaseTicketLock } from "@/lib/ticket-locks";
+import { logError } from "@/lib/error-log";
 
 export async function GET(
   request: NextRequest,
@@ -24,15 +27,21 @@ export async function GET(
    */
   try {
     const { id: ticketId } = await params;
+    const user = getRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Sesión requerida" }, { status: 401 });
+    }
 
     const pool = await getSqlConnection();
+    const ticketRequest = pool.request().input("ticket_id", ticketId);
+    if (!user.es_admin) ticketRequest.input("user_ch", user.ch);
 
-    const ticketResult = await pool.request().input("ticket_id", ticketId)
-      .query(`
+    const ticketResult = await ticketRequest.query(`
         SELECT 
           ticket_id, ch, nombre, nodo, cartera, plataforma, 
           motivo, puesto, descripcion, estado, 
           fecha_creacion as fecha,
+          fecha_actualizacion as updated_at,
           fecha_procesado,
           fecha_resuelto,
           fecha_cerrado,
@@ -42,6 +51,7 @@ export async function GET(
           atendido_por
         FROM tickets 
         WHERE ticket_id = @ticket_id
+        ${user.es_admin ? "" : "AND (creado_por = @user_ch OR (creado_por IS NULL AND ch = @user_ch))"}
       `);
 
     if (ticketResult.recordset.length === 0) {
@@ -68,7 +78,7 @@ export async function GET(
       notes: notesResult.recordset,
     });
   } catch (error) {
-    console.error("Error al obtener ticket:", error);
+    logError("Error al obtener ticket", error);
     return NextResponse.json(
       { success: false, error: "Error al obtener ticket" },
       { status: 500 },
@@ -104,26 +114,46 @@ export async function PUT(
   try {
     const { id: ticketId } = await params;
     const body = await request.json();
+    const user = getRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Sesión requerida" }, { status: 401 });
+    }
 
     const { estado, plataforma, motivo } = body;
+    const validStatuses = ["abierto", "en_proceso", "resuelto", "cerrado"];
 
-    let usuario = "Sistema";
-    const authHeader = request.headers.get("authorization");
+    if (estado !== undefined && !validStatuses.includes(estado)) {
+      return NextResponse.json(
+        { success: false, error: "Estado de ticket no válido" },
+        { status: 400 },
+      );
+    }
 
-    if (authHeader) {
-      try {
-        const token = authHeader.replace("Bearer ", "");
-        const base64Payload = token.split(".")[1];
-        const payload = JSON.parse(
-          Buffer.from(base64Payload, "base64").toString(),
-        );
-        usuario = payload.nombre_completo || payload.usuario_ch || "Usuario";
-      } catch (e) {
-        console.error("Error decodificando token:", e);
-      }
+    const usuario = user.nombre || user.ch;
+    const owner = user.ch;
+
+    if (user.es_admin && !hasTicketLock(ticketId, user.ch)) {
+      return NextResponse.json(
+        { success: false, error: "Debes tomar el ticket antes de modificarlo" },
+        { status: 409 },
+      );
     }
 
     const pool = await getSqlConnection();
+    const currentResult = await pool.request().input("ticket_id", ticketId).query(`
+      SELECT ch, creado_por, estado, procesado_por
+      FROM tickets
+      WHERE ticket_id = @ticket_id
+    `);
+
+    if (currentResult.recordset.length === 0) {
+      return NextResponse.json({ success: false, error: "Ticket no encontrado" }, { status: 404 });
+    }
+
+    const currentTicket = currentResult.recordset[0];
+    if (!user.es_admin && currentTicket.creado_por !== user.ch && currentTicket.ch !== user.ch) {
+      return NextResponse.json({ success: false, error: "No tienes permiso para este ticket" }, { status: 403 });
+    }
 
     if (estado !== undefined) {
       let updateQuery = `
@@ -134,7 +164,7 @@ export async function PUT(
 
       if (estado === "en_proceso") {
         updateQuery += `, fecha_procesado = GETDATE()`;
-        updateQuery += `, procesado_por = @usuario`;
+        if (!user.es_admin) updateQuery += `, procesado_por = @usuario`;
       } else if (estado === "resuelto") {
         updateQuery += `, fecha_resuelto = GETDATE()`;
         updateQuery += `, resuelto_por = @usuario`;
@@ -143,14 +173,27 @@ export async function PUT(
         updateQuery += `, atendido_por = @usuario`;
       }
 
-      updateQuery += ` WHERE ticket_id = @ticket_id`;
+      if (user.es_admin) {
+        updateQuery += `, procesado_por = CASE WHEN @estado = 'cerrado' THEN NULL ELSE COALESCE(procesado_por, @owner) END`;
+      }
 
-      await pool
+      updateQuery += " WHERE ticket_id = @ticket_id";
+
+      const updateResult = await pool
         .request()
         .input("ticket_id", ticketId)
         .input("estado", estado)
         .input("usuario", usuario)
+        .input("owner", owner)
+        .input("owner_name", user.nombre)
         .query(updateQuery);
+
+      if (updateResult.rowsAffected[0] === 0) {
+        return NextResponse.json(
+          { success: false, error: "Otro administrador está gestionando este ticket" },
+          { status: 409 },
+        );
+      }
 
       let statusText = "";
       switch (estado) {
@@ -176,6 +219,10 @@ export async function PUT(
           VALUES (@ticket_id, 'cambio_estado', @content, @author, 'estado', GETDATE())
         `);
 
+      if (user.es_admin && estado === "cerrado") {
+        releaseTicketLock(ticketId, user.ch);
+      }
+
       return NextResponse.json({ success: true });
     } else if (plataforma !== undefined || motivo !== undefined) {
       const updateFields: string[] = [];
@@ -199,6 +246,7 @@ export async function PUT(
       }
 
       updateFields.push("fecha_actualizacion = GETDATE()");
+      if (user.es_admin) updateFields.push("procesado_por = @owner");
 
       const updateQuery = `
         UPDATE tickets 
@@ -207,7 +255,15 @@ export async function PUT(
       `;
 
       dbRequest.input("ticket_id", ticketId);
-      await dbRequest.query(updateQuery);
+      dbRequest.input("owner", owner).input("owner_name", user.nombre);
+      const updateResult = await dbRequest.query(updateQuery);
+
+      if (updateResult.rowsAffected[0] === 0) {
+        return NextResponse.json(
+          { success: false, error: "Otro administrador está gestionando este ticket" },
+          { status: 409 },
+        );
+      }
 
       const updatedTicket = await pool.request().input("ticket_id", ticketId)
         .query(`
@@ -215,6 +271,7 @@ export async function PUT(
             ticket_id, ch, nombre, nodo, cartera, plataforma, 
             motivo, puesto, descripcion, estado, 
             fecha_creacion as fecha,
+            fecha_actualizacion as updated_at,
             fecha_procesado,
             fecha_resuelto,
             fecha_cerrado,
@@ -237,7 +294,7 @@ export async function PUT(
       );
     }
   } catch (error) {
-    console.error("Error en PUT:", error);
+    logError("Error en PUT de ticket", error);
     return NextResponse.json(
       { success: false, error: "Error al actualizar ticket" },
       { status: 500 },
@@ -268,29 +325,26 @@ export async function DELETE(
    */
   try {
     const { id: ticketId } = await params;
-
-    let usuario = "Sistema";
-    const authHeader = request.headers.get("authorization");
-
-    if (authHeader) {
-      try {
-        const token = authHeader.replace("Bearer ", "");
-        const base64Payload = token.split(".")[1];
-        const payload = JSON.parse(
-          Buffer.from(base64Payload, "base64").toString(),
-        );
-        usuario = payload.nombre_completo || payload.usuario_ch || "Usuario";
-      } catch (e) {
-        console.error("Error decodificando token:", e);
-      }
+    const user = getRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Sesión requerida" }, { status: 401 });
     }
 
+    const usuario = user.nombre || user.ch;
+
     const pool = await getSqlConnection();
+
+    if (user.es_admin && !hasTicketLock(ticketId, user.ch)) {
+      return NextResponse.json(
+        { success: false, error: "Debes tomar el ticket antes de eliminarlo" },
+        { status: 409 },
+      );
+    }
 
     const ticketResult = await pool
       .request()
       .input("ticket_id", ticketId)
-      .query(`SELECT estado FROM tickets WHERE ticket_id = @ticket_id`);
+      .query(`SELECT estado, ch, creado_por, procesado_por FROM tickets WHERE ticket_id = @ticket_id`);
 
     if (ticketResult.recordset.length === 0) {
       return NextResponse.json(
@@ -301,7 +355,11 @@ export async function DELETE(
 
     const ticket = ticketResult.recordset[0];
 
-    if (ticket.estado === "cerrado") {
+    if (!user.es_admin && ticket.creado_por !== user.ch && ticket.ch !== user.ch) {
+      return NextResponse.json({ success: false, error: "No tienes permiso para este ticket" }, { status: 403 });
+    }
+
+    if (ticket.estado === "cerrado" && !user.es_admin) {
       return NextResponse.json(
         { success: false, error: "No se pueden eliminar tickets cerrados" },
         { status: 403 },
@@ -322,17 +380,26 @@ export async function DELETE(
       .input("ticket_id", ticketId)
       .query(`DELETE FROM ticket_notes WHERE ticket_id = @ticket_id`);
 
-    await pool
+    const deleteResult = await pool
       .request()
       .input("ticket_id", ticketId)
-      .query(`DELETE FROM tickets WHERE ticket_id = @ticket_id`);
+      .input("owner", user.ch)
+      .input("owner_name", user.nombre)
+      .query("DELETE FROM tickets WHERE ticket_id = @ticket_id");
+
+    if (deleteResult.rowsAffected[0] === 0) {
+      return NextResponse.json(
+        { success: false, error: "Otro administrador está gestionando este ticket" },
+        { status: 409 },
+      );
+    }
 
     return NextResponse.json({
       success: true,
       message: "Ticket eliminado correctamente",
     });
   } catch (error) {
-    console.error("Error al eliminar ticket:", error);
+    logError("Error al eliminar ticket", error);
     return NextResponse.json(
       { success: false, error: "Error al eliminar ticket" },
       { status: 500 },

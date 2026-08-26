@@ -52,7 +52,7 @@ export default function SoportePage() {
 
   const loadTickets = async () => {
     try {
-      const response = await api.getTickets();
+      const response = await api.getTickets("all");
       const ticketsData = response.tickets || [];
       setTickets(ticketsData);
 

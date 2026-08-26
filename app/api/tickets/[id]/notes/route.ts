@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSqlConnection } from "@/lib/db_sqlserver";
+import { logError } from "@/lib/error-log";
 
 export async function POST(
   request: NextRequest,
@@ -63,7 +64,7 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error al agregar nota:", error);
+    logError("Error al agregar nota", error);
     return NextResponse.json(
       { success: false, error: "Error al agregar nota" },
       { status: 500 },

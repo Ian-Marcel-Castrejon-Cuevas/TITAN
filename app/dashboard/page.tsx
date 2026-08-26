@@ -18,6 +18,7 @@ import {
   FileText,
   Download,
   Search,
+  Bell,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -199,7 +200,7 @@ export default function DashboardPage() {
   const loadData = useCallback(
     async (isAutoRefresh: boolean = false) => {
       try {
-        const ticketsRes = await api.getTickets();
+        const ticketsRes = await api.getTickets("all");
         const tickets = ticketsRes.tickets || [];
 
         if (lastTicketCount > 0 && tickets.length > lastTicketCount) {
@@ -445,13 +446,22 @@ export default function DashboardPage() {
         <main className="flex-1 overflow-y-auto p-8">
           {/* NOTIFICACIÓN AMARILLA POPUP */}
           {showNotification && (
-            <div className="fixed top-4 right-4 z-[9999] bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-4 py-3 rounded-xl shadow-2xl animate-fade-in">
-              <div className="flex items-center gap-3">
-                <TicketIcon className="w-5 h-5" />
-                <span className="font-medium">{newTicketMessage}</span>
+            <div className="fixed right-6 top-6 z-[9999] w-[min(420px,calc(100vw-3rem))] overflow-hidden rounded-2xl border border-cyan-300/30 bg-slate-900/95 shadow-2xl shadow-black/40 backdrop-blur-xl animate-fade-in">
+              <div className="h-1 bg-gradient-to-r from-cyan-400 via-primary-500 to-amber-400" />
+              <div className="flex items-start gap-3 p-4">
+                <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-300">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-amber-400 ring-2 ring-slate-900" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300">Actividad nueva</p>
+                  <p className="mt-1 font-semibold text-white">{newTicketMessage}</p>
+                  <p className="mt-1 text-xs text-white/45">El panel se actualizará automáticamente.</p>
+                </div>
                 <button
                   onClick={() => setShowNotification(false)}
-                  className="ml-2 text-white/80 hover:text-white"
+                  aria-label="Cerrar notificación"
+                  className="shrink-0 rounded-lg p-1 text-white/40 transition hover:bg-white/10 hover:text-white"
                 >
                   <X className="w-4 h-4" />
                 </button>

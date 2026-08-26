@@ -12,7 +12,7 @@ export function useTickets() {
   const loadTickets = async () => {
     try {
       setLoading(true);
-      const response = await api.getTickets();
+      const response = await api.getTickets("mine");
       setTickets(response.tickets || []);
       setError(null);
     } catch (err) {

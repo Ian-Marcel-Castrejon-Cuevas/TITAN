@@ -42,11 +42,11 @@ Resumen
 - Resultado: al enviar, el sistema crea un registro en `tickets` (SQL Server) y genera un `ticket_id` tipo `TKT-...`.
 
 5. Consultar y gestionar tickets
-- Ruta general: `/tickets` muestra los tickets del usuario o del departamento.
+- Ruta general: `/tickets` muestra a cada usuario únicamente los tickets que creó; los administradores pueden consultar todos.
 - Filtrado: por estado (`abierto`, `en_proceso`, `resuelto`, `cerrado`) y búsqueda por ID, CH o nombre.
-- Detalle: `/tickets/[id]` muestra ticket y notas; desde ahí se pueden agregar notas y cambiar estado.
-- Cambio de estado: al cambiar, la API actualiza la fecha correspondiente y añade una nota automática en `ticket_notes`.
-- Eliminación: el sistema impide eliminar tickets con estado `cerrado`.
+- Detalle: `/tickets/[id]` valida el creador en el servidor; muestra ticket y notas, y permite las acciones autorizadas.
+- Gestión administrativa: el primer administrador que toma un ticket queda como responsable temporal en `procesado_por`. Solo ese administrador puede editarlo, eliminarlo o cambiar su estado mientras lo gestiona.
+- Liberación: al cerrar el ticket se libera el responsable temporal; otro administrador puede reabrirlo y tomarlo. Si dos administradores compiten, la API acepta únicamente la primera operación y responde `409` a la otra.
 
 6. Soporte y administración
 - `/soporte`: panel de soporte para ver todos los tickets, añadir notas, cambiar estados y exportar a Excel.
