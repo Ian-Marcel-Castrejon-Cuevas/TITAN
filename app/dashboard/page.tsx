@@ -148,7 +148,8 @@ export default function DashboardPage() {
     } else if (
       motivo &&
       (motivo.toLowerCase().trim() === "levantar carven1" ||
-        motivo.toLowerCase().trim() === "levantar carven2")
+        motivo.toLowerCase().trim() === "levantar carven2" ||
+        motivo.toLowerCase().trim() === "levantar carven 3")
     ) {
       soundUrl = SONIDO_LEVANTAR_CARVEN;
     } else {
