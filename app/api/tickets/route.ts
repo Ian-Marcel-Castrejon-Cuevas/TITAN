@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
       "Botar Carven",
       "Levantar Carven1",
       "Levantar Carven2",
+      "Levantar carven 3",
     ].includes(data.motivo);
     const estadoInicial = isCarvenOperation ? "cerrado" : "abierto";
 

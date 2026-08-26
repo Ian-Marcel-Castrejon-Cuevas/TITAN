@@ -374,6 +374,35 @@ async function ejecutarReiniciarCarven2(): Promise<{
   }
 }
 
+async function ejecutarReiniciarCarven3(): Promise<{
+  success: boolean;
+  message: string;
+  restarted?: boolean;
+  botarCarven?: boolean;
+}> {
+  try {
+    const response = await fetch("/api/restart-carven3", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Error al Levantar Carven3");
+    }
+    return data;
+  } catch (error) {
+    console.error("Error en Levantar Carven3:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Error al Levantar Carven3",
+      restarted: false,
+      botarCarven: false,
+    };
+  }
+}
+
 const isValidCHOrSpecialUser = (username: string): boolean => {
   if (!username) return false;
   if (specialUsers.includes(username)) return true;
@@ -622,6 +651,11 @@ export default function RegistroPage() {
         result = await ejecutarReiniciarCarven1();
       } else if (motivo === "Levantar Carven2") {
         result = await ejecutarReiniciarCarven2();
+      } else if (motivo === "Levantar carven 3") {
+        setProgressMessage(
+          "El reinicio de Carven3 puede tardar hasta 5 minutos. Favor de esperar hasta que acabe.",
+        );
+        result = await ejecutarReiniciarCarven3();
       }
 
       progressValue = 60;
@@ -709,7 +743,8 @@ export default function RegistroPage() {
 
       if (
         formData.motivo === "Levantar Carven1" ||
-        formData.motivo === "Levantar Carven2"
+        formData.motivo === "Levantar Carven2" ||
+        formData.motivo === "Levantar carven 3"
       ) {
         await handleCarvenRestart(formData.motivo, ticketCode);
       } else {
@@ -828,6 +863,9 @@ export default function RegistroPage() {
                     </p>
                     <p className="text-white/60 text-sm mt-1">
                       {progressMessage || "Preparando proceso"}
+                    </p>
+                    <p className="text-amber-300/80 text-xs mt-2">
+                      El proceso de reinicio es tardado. Favor de esperar hasta que acabe.
                     </p>
                   </div>
                   <span className="text-2xl font-bold text-orange-400">

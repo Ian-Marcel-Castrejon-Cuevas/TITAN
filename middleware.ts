@@ -115,5 +115,6 @@ export const config = {
     "/api/delete-carven/:path*",
     "/api/restart-carven1/:path*",
     "/api/restart-carven2/:path*",
+    "/api/restart-carven3/:path*",
   ],
 };
