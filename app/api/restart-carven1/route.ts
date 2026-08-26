@@ -259,7 +259,10 @@ export async function POST(request: NextRequest) {
       "[Restart Carven1] Carven1 no responde, procediendo con reinicio...",
     );
 
-    const commands = ["cd /apps/apache-tomcat-5.5.20/bin", "./startup.sh"];
+    const commands = [
+      "cd /apps/apache-tomcat-5.5.20/bin",
+      "./startup.sh || true",
+    ];
 
     const result = await executeSSHCommands(commands);
 
