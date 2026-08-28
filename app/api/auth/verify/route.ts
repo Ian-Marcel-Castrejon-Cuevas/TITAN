@@ -31,7 +31,14 @@ export async function GET(request: NextRequest) {
     const token = authHeader.split(' ')[1];
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'CADNUX_JWT_SECRET_KEY_2024');
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        return NextResponse.json(
+          { valid: false, error: 'JWT_SECRET no está configurado' },
+          { status: 503 },
+        );
+      }
+      const decoded = jwt.verify(token, jwtSecret);
       return NextResponse.json({ valid: true, user: decoded });
     } catch {
       return NextResponse.json(

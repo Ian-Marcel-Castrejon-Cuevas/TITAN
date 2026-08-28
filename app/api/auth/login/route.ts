@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSession } from "@/lib/session-store";
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://192.168.8.4:5001";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export async function POST(request: NextRequest) {
   /**
@@ -23,6 +22,12 @@ export async function POST(request: NextRequest) {
    * - Maneja credenciales sensibles; asegurar transporte TLS y no loguear contraseñas en producción.
    */
   try {
+    if (!BACKEND_URL) {
+      return NextResponse.json(
+        { error: "NEXT_PUBLIC_BACKEND_URL no está configurado" },
+        { status: 503 },
+      );
+    }
     const { usuario_ch, password } = await request.json();
 
     if (!usuario_ch || !password) {

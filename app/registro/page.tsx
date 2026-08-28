@@ -865,7 +865,8 @@ export default function RegistroPage() {
                       {progressMessage || "Preparando proceso"}
                     </p>
                     <p className="text-amber-300/80 text-xs mt-2">
-                      El proceso de reinicio es tardado. Favor de esperar hasta que acabe.
+                      El proceso de reinicio es tardado. Favor de esperar hasta
+                      que acabe.
                     </p>
                   </div>
                   <span className="text-2xl font-bold text-orange-400">

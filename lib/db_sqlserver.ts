@@ -5,7 +5,7 @@ const sqlConfig: sql.config = {
   password: process.env.SQL_PASSWORD,
   server: process.env.SQL_SERVER || "",
   port: parseInt(process.env.SQL_PORT || "1433"),
-  database: process.env.SQL_DATABASE || "",
+  database: process.env.SQL_DATABASE,
   options: {
     encrypt: process.env.SQL_ENCRYPT === "true",
     trustServerCertificate: process.env.SQL_TRUST_SERVER_CERTIFICATE === "true",

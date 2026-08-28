@@ -8,7 +8,7 @@ const execAsync = promisify(exec);
 const SSH_HOST2 = process.env.SSH_HOST2;
 const SSH_USER2 = process.env.SSH_USER2;
 const SSH_PASS2 = process.env.SSH_PASS2;
-const SSH_PORT2 = process.env.SSH_PORT2 || "22";
+const SSH_PORT2 = process.env.SSH_PORT2;
 
 const SSH_OPTIONS2 = [
   "-o KexAlgorithms=+diffie-hellman-group1-sha1",
@@ -33,7 +33,7 @@ async function checkCarven2Status(): Promise<boolean> {
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     const response = await axios.get(
-      "http://192.168.8.51:8081/asecon/servlet/asecon.hcarvenprin",
+      process.env.CARVEN2_STATUS_URL!,
       {
         signal: controller.signal,
         timeout: 15000,
@@ -175,7 +175,8 @@ async function ejecutarBotarCarven(cookie: string): Promise<boolean> {
    * - Captura errores de fetch y retorna `false` en caso de fallo.
    */
   try {
-    const baseUrl = "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!baseUrl) return false;
     const response = await fetch(`${baseUrl}/api/delete-carven`, {
       method: "POST",
       headers: {
@@ -244,10 +245,10 @@ export async function POST(request: NextRequest) {
     );
 
     const commands = [
-      "cd /etc/init.d",
-      "./tomcat5 stop || true",
-      "sleep 3",
-      "./tomcat5 start",
+      `cd ${process.env.CARVEN2_INIT_DIR}`,
+      `${process.env.CARVEN2_STOP_COMMAND} || true`,
+      `sleep ${process.env.CARVEN2_RESTART_DELAY_SECONDS}`,
+      process.env.CARVEN2_START_COMMAND!,
     ];
 
     const result = await executeSSHCommands(commands);

@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { Pool, type PoolClient } from "pg";
 
 const pool = new Pool({
-  host: process.env.PG_HOST || "192.168.8.55",
+  host: process.env.PG_HOST,
   port: parseInt(process.env.PG_PORT || "5432"),
-  user: process.env.PG_USER || "asecon",
-  password: process.env.PG_PASSWORD || "",
-  database: process.env.PG_DATABASE || "asecon",
+  user: process.env.PG_USER,
+  password: process.env.PG_PASSWORD,
+  database: process.env.PG_DATABASE,
   ssl: false,
 });
 

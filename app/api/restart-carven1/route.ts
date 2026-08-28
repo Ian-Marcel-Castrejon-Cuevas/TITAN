@@ -6,10 +6,10 @@ import axios from "axios";
 const execAsync = promisify(exec);
 
 // Configuración SSH para Carven1 con sshpass (contraseña)
-const SSH_HOST = process.env.SSH_HOST || "192.168.8.10";
-const SSH_USER = process.env.SSH_USER || "root";
+const SSH_HOST = process.env.SSH_HOST;
+const SSH_USER = process.env.SSH_USER;
 const SSH_PASS = process.env.SSH_PASS;
-const SSH_PORT = process.env.SSH_PORT || "22";
+const SSH_PORT = process.env.SSH_PORT;
 
 const SSH_OPTIONS = [
   "-o KexAlgorithms=+diffie-hellman-group1-sha1",
@@ -34,7 +34,7 @@ async function checkCarven1Status(): Promise<boolean> {
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     const response = await axios.get(
-      "http://192.168.8.10:8081/asecon/servlet/asecon.hcarvenprin",
+      process.env.CARVEN1_STATUS_URL!,
       {
         signal: controller.signal,
         timeout: 15000,
@@ -176,7 +176,8 @@ async function ejecutarBotarCarven(cookie: string): Promise<boolean> {
    * - Captura errores de fetch y retorna `false` en caso de fallo.
    */
   try {
-    const baseUrl = "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!baseUrl) return false;
     const response = await fetch(`${baseUrl}/api/delete-carven`, {
       method: "POST",
       headers: {
@@ -260,8 +261,8 @@ export async function POST(request: NextRequest) {
     );
 
     const commands = [
-      "cd /apps/apache-tomcat-5.5.20/bin",
-      "./startup.sh || true",
+      `cd ${process.env.CARVEN1_INIT_DIR}`,
+      `${process.env.CARVEN1_START_COMMAND} || true`,
     ];
 
     const result = await executeSSHCommands(commands);

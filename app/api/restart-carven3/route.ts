@@ -5,10 +5,10 @@ import axios from "axios";
 
 const execAsync = promisify(exec);
 
-const SSH_HOST3 = process.env.SSH_HOST3 || "192.168.8.52";
-const SSH_USER3 = process.env.SSH_USER3 || "root";
+const SSH_HOST3 = process.env.SSH_HOST3;
+const SSH_USER3 = process.env.SSH_USER3;
 const SSH_PASS3 = process.env.SSH_PASS3;
-const SSH_PORT3 = process.env.SSH_PORT3 || "22";
+const SSH_PORT3 = process.env.SSH_PORT3;
 const SERVER_WAIT_TIMEOUT_MS = 5 * 60 * 1000;
 const PING_INTERVAL_MS = 5000;
 
@@ -26,7 +26,7 @@ async function checkCarven3Status(): Promise<boolean> {
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     const response = await axios.get(
-      "http://192.168.8.52:8081/asecon/servlet/asecon.hcarvenprin",
+      process.env.CARVEN3_STATUS_URL!,
       {
         signal: controller.signal,
         timeout: 15000,
@@ -106,7 +106,7 @@ export async function POST() {
 
     console.log("[Restart Carven3] Ejecutando servicios y montaje NFS...");
     const result = await runSSH(
-      "cd /etc/init.d && ./tomcat5 start && ./nfs start && mount 192.168.8.101:/procesos_carven /SYS",
+      `cd ${process.env.CARVEN3_INIT_DIR} && ${process.env.CARVEN3_TOMCAT_START} && ${process.env.CARVEN3_NFS_START} && mount ${process.env.CARVEN3_NFS_SOURCE} ${process.env.CARVEN3_NFS_TARGET}`,
     );
 
     return NextResponse.json({

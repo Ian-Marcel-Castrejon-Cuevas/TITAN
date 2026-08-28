@@ -10,22 +10,22 @@ import os
 from dotenv import load_dotenv
 
 # Cargar variables de entorno desde .env
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 app = Flask(__name__)
 CORS(app)
 
 # Configuración de la base de datos desde .env
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'port': int(os.getenv('DB_PORT', 5432)),
-    'database': os.getenv('DB_DATABASE', 'asecon'),
-    'user': os.getenv('DB_USER', 'asecon'),
-    'password': os.getenv('DB_PASSWORD', '')
+    'host': os.getenv('PG_HOST'),
+    'port': int(os.getenv('PG_PORT', '5432')),
+    'database': os.getenv('PG_DATABASE'),
+    'user': os.getenv('PG_USER'),
+    'password': os.getenv('PG_PASSWORD')
 }
 
 # Configuración de seguridad desde .env
-SECRET_KEY = os.getenv('SECRET_KEY', 'CADNUX_JWT_SECRET_KEY_2024_VERY_SECURE_32_BYTES')
+SECRET_KEY = os.getenv('JWT_SECRET')
 
 # Departamentos administradores desde .env
 ADMIN_DEPARTMENTS = os.getenv('ADMIN_DEPARTMENTS', '09').split(',')
