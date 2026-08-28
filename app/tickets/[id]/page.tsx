@@ -24,6 +24,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { formatDateTime } from "@/lib/date-format";
 
 const plataformas = [
   "Active Directory (AD)",
@@ -141,28 +142,11 @@ const getMotivosPorPlataforma = (plataforma: string): string[] => {
 };
 
 const formatFechaHora = (fechaStr: string) => {
-  if (!fechaStr) return "";
-  let fecha = fechaStr;
-  if (fecha.includes("T")) {
-    fecha = fecha.replace("T", " ");
-  }
-  if (fecha.includes(".")) {
-    fecha = fecha.substring(0, fecha.lastIndexOf("."));
-  }
-  return fecha;
+  return formatDateTime(fechaStr);
 };
 
 const formatFechaCorta = (fechaStr: string) => {
-  if (!fechaStr) return "";
-  let fecha = fechaStr;
-  if (fecha.includes("T")) {
-    fecha = fecha.replace("T", " ");
-  }
-  if (fecha.includes(".")) {
-    fecha = fecha.substring(0, fecha.lastIndexOf("."));
-  }
-  const partes = fecha.split(" ");
-  return partes[0];
+  return formatDateTime(fechaStr).split(" ")[0];
 };
 
 const getEstadoColor = (estado: string) => {

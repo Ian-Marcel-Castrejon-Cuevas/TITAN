@@ -23,6 +23,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { formatDateTime } from "@/lib/date-format";
 
 interface Estadisticas {
   total_tickets: number;
@@ -51,8 +52,7 @@ const SONIDO_BOTAR_CARVEN = "/audios/botarcarven.mp3";
 const SONIDO_LEVANTAR_CARVEN = "/audios/revivan.mp3";
 
 const formatFechaHora = (fechaStr: string) => {
-  if (!fechaStr) return "";
-  return fechaStr;
+  return formatDateTime(fechaStr);
 };
 
 const formatFecha = (date: Date) => {
@@ -609,47 +609,49 @@ export default function DashboardPage() {
               No hay tickets
             </div>
           ) : (
-            <div className="glass-card p-6 overflow-x-auto">
-              <table className="w-full">
-                <thead className="text-white/50 border-b border-white/10">
+            <div className="glass-card overflow-hidden">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] table-auto">
+                <thead className="border-b border-white/10 bg-white/[0.03] text-white/50">
                   <tr>
-                    <th className="text-left py-2">ID</th>
-                    <th className="text-left py-2">Usuario</th>
-                    <th className="text-left py-2">CH</th>
-                    <th className="text-left py-2">Motivo</th>
-                    <th className="text-left py-2">Estado</th>
-                    <th className="text-left py-2">Fecha</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Usuario</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">CH</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Motivo</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Estado</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Fecha</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/5">
                   {filteredTickets.map((ticket) => (
                     <tr
                       key={ticket.ticket_id}
                       onClick={() => goToTicket(ticket.ticket_id)}
-                      className="border-b border-white/5 hover:bg-white/5 cursor-pointer"
+                      className="cursor-pointer transition-colors hover:bg-white/5"
                     >
-                      <td className="py-2 font-mono text-primary-400 text-sm">
+                      <td className="whitespace-nowrap px-4 py-3 align-top font-mono text-sm text-primary-400">
                         {ticket.ticket_id}
                       </td>
-                      <td className="py-2 text-white">
+                      <td className="break-words px-4 py-3 align-top text-white">
                         {limpiarEspacios(ticket.nombre)}
                       </td>
-                      <td className="py-2 text-white/80">{ticket.ch}</td>
-                      <td className="py-2 text-white/80">{ticket.motivo}</td>
-                      <td className="py-2">
+                      <td className="whitespace-nowrap px-4 py-3 align-top text-white/80">{ticket.ch}</td>
+                      <td className="break-words px-4 py-3 align-top text-white/80">{ticket.motivo}</td>
+                      <td className="px-4 py-3 align-top">
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${getEstadoColor(ticket.estado)}`}
                         >
                           {getEstadoTexto(ticket.estado)}
                         </span>
                       </td>
-                      <td className="py-2 text-white/50 text-sm">
+                      <td className="break-words px-4 py-3 align-top text-sm text-white/50">
                         {formatFechaHora(ticket.fecha)}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
 

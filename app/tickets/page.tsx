@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { formatDateTime } from "@/lib/date-format";
 
 const DEPARTAMENTOS: Record<number, string> = {
   1: "Dirección General",
@@ -85,15 +86,7 @@ const DEPARTAMENTOS: Record<number, string> = {
 };
 
 const formatFechaHora = (fechaStr: string) => {
-  if (!fechaStr) return "";
-  let fecha = fechaStr;
-  if (fecha.includes("T")) {
-    fecha = fecha.replace("T", " ");
-  }
-  if (fecha.includes(".")) {
-    fecha = fecha.substring(0, fecha.lastIndexOf("."));
-  }
-  return fecha;
+  return formatDateTime(fechaStr);
 };
 
 const getEstadoColor = (estado: string) => {

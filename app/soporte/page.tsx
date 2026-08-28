@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
+import { formatDateTime } from "@/lib/date-format";
 
 type TicketEstado = "abierto" | "en_proceso" | "resuelto" | "cerrado";
 
@@ -186,7 +187,7 @@ export default function SoportePage() {
       Motivo: ticket.motivo,
       Puesto: ticket.puesto,
       Descripción: ticket.descripcion,
-      Fecha: new Date(ticket.fecha).toLocaleString("es-MX"),
+      Fecha: formatDateTime(ticket.fecha),
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -398,7 +399,7 @@ export default function SoportePage() {
                           {ticket.motivo}
                         </td>
                         <td className="py-3 px-4 text-white/50 text-sm">
-                          {new Date(ticket.fecha).toLocaleDateString("es-MX")}
+                          {formatDateTime(ticket.fecha)}
                         </td>
                         <td className="py-3 px-4">
                           <button

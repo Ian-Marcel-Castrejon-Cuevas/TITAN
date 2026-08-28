@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Bell, CheckCheck, ChevronRight, MessageSquare } from "lucide-react";
 import type { Notification } from "@/hooks/useNotifications";
+import { formatDateTime } from "@/lib/date-format";
 
 interface NotificationCenterProps {
   notifications: Notification[];
@@ -18,14 +19,7 @@ const notificationLabels: Record<Notification["type"], string> = {
 
 const formatNotificationDate = (value: string) => {
   if (!value) return "Ahora";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString("es-MX", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatDateTime(value);
 };
 
 export function NotificationCenter({
