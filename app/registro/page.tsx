@@ -281,6 +281,7 @@ const getMotivosPorPlataforma = (plataforma: string): string[] => {
 
 const puestos = [
   "GERENTE",
+  "COORDINADOR",
   "SUPERVISOR",
   "EJECUTIVO",
   "OPERADOR",
@@ -295,6 +296,7 @@ const puestos = [
   "AUXILIAR RECUPERACION",
   "COORDINADOR GESTORES EXTERNOS",
   "COORDINADOR CALIDAD",
+  "SUPERVISOR DE CALIDAD",
   "MONITOR CALIDAD",
   "GERENTE RECUPERACION",
   "OTRO",
