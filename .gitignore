@@ -36,6 +36,7 @@ yarn-error.log*
 
 # Local single-session state
 /data/sessions.json
+/data/carven-operation-locks.json
 
 # vercel
 .vercel

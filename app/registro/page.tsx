@@ -767,7 +767,9 @@ export default function RegistroPage() {
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Error al registrar ticket");
+      toast.error(
+        error instanceof Error ? error.message : "Error al registrar ticket",
+      );
       setLoading(false);
     } finally {
       setLoading(false);

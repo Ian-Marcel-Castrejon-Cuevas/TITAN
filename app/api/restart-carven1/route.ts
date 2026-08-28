@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { exec } from "child_process";
 import { promisify } from "util";
 import axios from "axios";
+import { getRequestUser } from "@/lib/request-auth";
+import {
+  hasCarvenOperationLock,
+  releaseCarvenOperation,
+} from "@/lib/carven-operation-locks";
 
 const execAsync = promisify(exec);
 
@@ -193,6 +198,20 @@ async function ejecutarBotarCarven(cookie: string): Promise<boolean> {
 }
 
 export async function POST(request: NextRequest) {
+  const user = getRequestUser(request);
+  if (!user) {
+    return NextResponse.json(
+      { success: false, message: "Sesión requerida" },
+      { status: 401 },
+    );
+  }
+  if (!hasCarvenOperationLock("carven1", user.ch)) {
+    return NextResponse.json(
+      { success: false, message: "No existe una reserva activa para Carven1" },
+      { status: 409 },
+    );
+  }
+
   /**
    * Endpoint que reinicia Carven1 si no responde: verifica estado, prueba SSH y ejecuta reinicio remoto.
    *
@@ -305,5 +324,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 },
     );
+  } finally {
+    releaseCarvenOperation("carven1", user.ch);
   }
 }

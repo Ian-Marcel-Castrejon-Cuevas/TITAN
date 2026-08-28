@@ -1,7 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { exec } from "child_process";
 import { promisify } from "util";
 import axios from "axios";
+import { getRequestUser } from "@/lib/request-auth";
+import {
+  hasCarvenOperationLock,
+  releaseCarvenOperation,
+} from "@/lib/carven-operation-locks";
 
 const execAsync = promisify(exec);
 
@@ -82,7 +87,21 @@ async function waitForServer() {
   throw new Error("El servidor Carven3 no levantó después de 5 minutos");
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const user = getRequestUser(request);
+  if (!user) {
+    return NextResponse.json(
+      { success: false, message: "Sesión requerida" },
+      { status: 401 },
+    );
+  }
+  if (!hasCarvenOperationLock("carven3", user.ch)) {
+    return NextResponse.json(
+      { success: false, message: "No existe una reserva activa para Carven3" },
+      { status: 409 },
+    );
+  }
+
   try {
     console.log("[Restart Carven3] Verificando estado de Carven3...");
     const isResponding = await checkCarven3Status();
@@ -127,5 +146,7 @@ export async function POST() {
       },
       { status: 500 },
     );
+  } finally {
+    releaseCarvenOperation("carven3", user.ch);
   }
 }

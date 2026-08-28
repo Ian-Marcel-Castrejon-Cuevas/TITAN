@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSqlConnection, generateTicketId } from "@/lib/db_sqlserver";
 import { getRequestUser } from "@/lib/request-auth";
 import { logError } from "@/lib/error-log";
+import {
+  acquireCarvenOperation,
+  getCarvenOperation,
+  releaseCarvenOperation,
+} from "@/lib/carven-operation-locks";
 
 /**
  * Obtiene la lista completa de tickets.
@@ -87,8 +92,38 @@ export async function GET(request: NextRequest) {
  * await fetch('/api/tickets', { method: 'POST', body: JSON.stringify(data) })
  */
 export async function POST(request: NextRequest) {
+  let operation: ReturnType<typeof getCarvenOperation> = null;
+  let operationOwner = "";
+
   try {
     const data = await request.json();
+    const user = getRequestUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Sesión requerida" },
+        { status: 401 },
+      );
+    }
+
+    operation = getCarvenOperation(data.motivo);
+    if (operation) {
+      operationOwner = user.ch;
+      const lockResult = acquireCarvenOperation(
+        operation,
+        user.ch,
+        user.nombre,
+      );
+      if (!lockResult.acquired) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `No se puede levantar Carven${operation.slice(-1)} porque ya lo levantó ${lockResult.lock.ownerName}.`,
+          },
+          { status: 409 },
+        );
+      }
+    }
+
     const ticketId = generateTicketId();
     const isCarvenOperation = [
       "Botar Carven",
@@ -144,6 +179,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, ticketCode: ticketId });
   } catch (error) {
+    if (operation && operationOwner) {
+      releaseCarvenOperation(operation, operationOwner);
+    }
     logError("Error al crear ticket", error);
     return NextResponse.json(
       { success: false, error: "Error al crear ticket" },
