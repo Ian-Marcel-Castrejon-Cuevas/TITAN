@@ -31,11 +31,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Sesión requerida" }, { status: 401 });
     }
 
-    const scope = new URL(request.url).searchParams.get("scope") || "all";
+    const searchParams = new URL(request.url).searchParams;
+    const scope = searchParams.get("scope") || "all";
+    const status = searchParams.get("status");
+    const search = searchParams.get("search")?.trim() || "";
+    const requestedPage = Number.parseInt(searchParams.get("page") || "1", 10);
+    const requestedPageSize = Number.parseInt(searchParams.get("pageSize") || "100", 10);
+    const isPaginated = Boolean(status || search);
+    const page = Number.isFinite(requestedPage) ? Math.max(1, requestedPage) : 1;
+    const pageSize = isPaginated
+      ? Math.min(100, Math.max(1, Number.isFinite(requestedPageSize) ? requestedPageSize : 100))
+      : 0;
     const userRequestsOwnTickets = scope === "mine";
-    const pool = await getSqlConnection();
-    const dbRequest = pool.request();
-    let ownerFilter = "";
 
     if (!user.es_admin && scope === "all") {
       return NextResponse.json(
@@ -44,9 +51,71 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const pool = await getSqlConnection();
+    const dbRequest = pool.request();
+    const filters: string[] = [];
+
     if (userRequestsOwnTickets) {
-      ownerFilter = "WHERE (creado_por = @user_ch OR (creado_por IS NULL AND ch = @user_ch))";
+      filters.push("(creado_por = @user_ch OR (creado_por IS NULL AND ch = @user_ch))");
       dbRequest.input("user_ch", user.ch);
+    }
+
+    if (status) {
+      const validStatuses = ["abierto", "en_proceso", "resuelto", "cerrado"];
+      if (!validStatuses.includes(status)) {
+        return NextResponse.json(
+          { success: false, error: "Estado de ticket no válido" },
+          { status: 400 },
+        );
+      }
+      filters.push("estado = @status");
+      dbRequest.input("status", status);
+    }
+
+    if (search) {
+      filters.push(
+        "(ticket_id LIKE @search OR motivo LIKE @search OR descripcion LIKE @search OR nombre LIKE @search OR ch LIKE @search)",
+      );
+      dbRequest.input("search", `%${search}%`);
+    }
+
+    const whereClause = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+    const baseQuery = `
+      FROM tickets
+      ${whereClause}
+    `;
+
+    if (isPaginated) {
+      const countResult = await dbRequest.query(`SELECT COUNT(*) AS total ${baseQuery}`);
+      const total = Number(countResult.recordset[0]?.total || 0);
+      dbRequest.input("offset", (page - 1) * pageSize);
+      dbRequest.input("pageSize", pageSize);
+
+      const result = await dbRequest.query(`
+        SELECT
+          ticket_id, ch, nombre, nodo, cartera, plataforma,
+          motivo, puesto, descripcion, estado,
+          fecha_creacion as fecha,
+          fecha_actualizacion as updated_at,
+          fecha_procesado,
+          fecha_resuelto,
+          fecha_cerrado,
+          creado_por
+        ${baseQuery}
+        ORDER BY fecha_creacion DESC
+        OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY
+      `);
+
+      return NextResponse.json({
+        success: true,
+        tickets: result.recordset,
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPages: Math.ceil(total / pageSize),
+        },
+      });
     }
 
     const result = await dbRequest.query(`
@@ -60,7 +129,7 @@ export async function GET(request: NextRequest) {
         fecha_cerrado,
         creado_por
       FROM tickets
-      ${ownerFilter}
+      ${whereClause}
       ORDER BY fecha_creacion DESC
     `);
 

@@ -19,6 +19,8 @@ import {
   Download,
   Search,
   Bell,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -99,7 +101,6 @@ export default function DashboardPage() {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<Estadisticas | null>(null);
-  const [allTickets, setAllTickets] = useState<Ticket[]>([]);
   const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState("");
@@ -119,6 +120,13 @@ export default function DashboardPage() {
   const [documentHidden, setDocumentHidden] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const celebratedMilestones = useRef(new Set<number>());
+  const [ticketPage, setTicketPage] = useState(1);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  } | null>(null);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -213,16 +221,25 @@ export default function DashboardPage() {
   const loadData = useCallback(
     async (isAutoRefresh: boolean = false) => {
       try {
-        const ticketsRes = await api.getTickets("all");
+        const [ticketsRes, statsRes] = await Promise.all([
+          api.getTickets("all", {
+            status: activeTab,
+            search: searchTerm.trim() || undefined,
+            page: ticketPage,
+            pageSize: 100,
+          }),
+          api.getStats(),
+        ]);
         const tickets = ticketsRes.tickets || [];
+        const totalTickets = statsRes.stats.total_tickets;
 
-        if (lastTicketCount > 0 && tickets.length > lastTicketCount) {
-          const newTicketsCount = tickets.length - lastTicketCount;
+        if (lastTicketCount > 0 && totalTickets > lastTicketCount) {
+          const newTicketsCount = totalTickets - lastTicketCount;
           const milestones = [700, 800, 900, 1000];
           const reachedMilestone = milestones.find(
             (milestone) =>
               lastTicketCount < milestone &&
-              tickets.length >= milestone &&
+              totalTickets >= milestone &&
               !celebratedMilestones.current.has(milestone),
           );
 
@@ -232,24 +249,19 @@ export default function DashboardPage() {
           showNewTicketNotification(newTicketsCount, tickets[0], reachedMilestone);
         }
 
-        setAllTickets(tickets);
-        setLastTicketCount(tickets.length);
-
+        setLastTicketCount(totalTickets);
+        setPagination(ticketsRes.pagination || null);
         setStats({
-          total_tickets: tickets.length,
-          tickets_hoy: tickets.filter(
-            (t) =>
-              new Date(t.fecha).toDateString() === new Date().toDateString(),
-          ).length,
+          total_tickets: statsRes.stats.total_tickets,
+          tickets_hoy: statsRes.stats.tickets_hoy,
           por_estado: {
-            abierto: tickets.filter((t) => t.estado === "abierto").length,
-            en_proceso: tickets.filter((t) => t.estado === "en_proceso").length,
-            resuelto: tickets.filter((t) => t.estado === "resuelto").length,
-            cerrado: tickets.filter((t) => t.estado === "cerrado").length,
+            abierto: statsRes.stats.por_estado.abierto || 0,
+            en_proceso: statsRes.stats.por_estado.en_proceso || 0,
+            resuelto: statsRes.stats.por_estado.resuelto || 0,
+            cerrado: statsRes.stats.por_estado.cerrado || 0,
           },
         });
-
-        setFilteredTickets(tickets.filter((t) => t.estado === activeTab));
+        setFilteredTickets(tickets);
       } catch (error) {
         console.error("Error cargando:", error);
         if (!isAutoRefresh) toast.error("Error al cargar datos");
@@ -257,7 +269,7 @@ export default function DashboardPage() {
         if (!isAutoRefresh) setLoading(false);
       }
     },
-    [activeTab, lastTicketCount, showNewTicketNotification],
+    [activeTab, lastTicketCount, searchTerm, showNewTicketNotification, ticketPage],
   );
 
   useEffect(() => {
@@ -302,32 +314,17 @@ export default function DashboardPage() {
     setFechaInicio(hace30Dias.toISOString().split("T")[0]);
   }, [isAdmin, authLoading, router]);
 
-  useEffect(() => {
-    setFilteredTickets(allTickets.filter((t) => t.estado === activeTab));
-  }, [activeTab, allTickets]);
-
   const filterByStatus = (
     estado: "abierto" | "en_proceso" | "resuelto" | "cerrado",
   ) => {
     setActiveTab(estado);
     setSearchTerm("");
+    setTicketPage(1);
   };
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    if (term.trim() === "") {
-      filterByStatus(activeTab);
-      return;
-    }
-    const filtered = allTickets.filter(
-      (ticket) =>
-        ticket.estado === activeTab &&
-        (ticket.ticket_id.toLowerCase().includes(term.toLowerCase()) ||
-          ticket.nombre.toLowerCase().includes(term.toLowerCase()) ||
-          ticket.ch.toLowerCase().includes(term.toLowerCase()) ||
-          ticket.motivo.toLowerCase().includes(term.toLowerCase())),
-    );
-    setFilteredTickets(filtered);
+    setTicketPage(1);
   };
 
   const generateReport = async () => {
@@ -603,7 +600,7 @@ export default function DashboardPage() {
           </div>
 
           <h3 className="text-xl font-semibold text-white mb-4">
-            Tickets {getEstadoTexto(activeTab)}s ({filteredTickets.length})
+            Tickets {getEstadoTexto(activeTab)}s ({pagination?.total ?? filteredTickets.length})
           </h3>
 
           {/* Tabla */}
@@ -653,6 +650,36 @@ export default function DashboardPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {pagination && pagination.totalPages > 1 && (
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setTicketPage((page) => Math.max(1, page - 1))}
+                disabled={pagination.page <= 1 || loading}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-700/60 px-4 py-2 text-sm text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </button>
+              <span className="text-sm text-white/60">
+                Página {pagination.page} de {pagination.totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setTicketPage((page) =>
+                    Math.min(pagination.totalPages, page + 1),
+                  )
+                }
+                disabled={pagination.page >= pagination.totalPages || loading}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-700/60 px-4 py-2 text-sm text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
           )}
         </main>

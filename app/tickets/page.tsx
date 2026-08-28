@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Footer } from "@/components/layout/Footer";
 import { api, Ticket } from "@/lib/api";
@@ -17,6 +17,8 @@ import {
   Building2,
   XCircle,
   Bell,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -140,6 +142,36 @@ export default function TicketsPage() {
     Set<string>
   >(new Set());
   const [lastFetchTime, setLastFetchTime] = useState<Date>(new Date());
+  const [ticketPage, setTicketPage] = useState(1);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  } | null>(null);
+
+  const usesServerQuery = filterStatus === "cerrado" || searchTerm.trim() !== "";
+
+  const loadTickets = useCallback(async (page = 1) => {
+    try {
+      setLoading(true);
+      const response = await api.getTickets("mine", {
+        status: filterStatus === "all" ? undefined : filterStatus,
+        search: searchTerm.trim() || undefined,
+        page: usesServerQuery ? page : undefined,
+        pageSize: usesServerQuery ? 100 : undefined,
+      });
+      const userTickets = response.tickets || [];
+
+      setTickets(userTickets);
+      setPagination(response.pagination || null);
+      setTicketPage(response.pagination?.page || page);
+    } catch {
+      toast.error("Error al cargar tickets");
+    } finally {
+      setLoading(false);
+    }
+  }, [filterStatus, searchTerm, usesServerQuery]);
 
   useEffect(() => {
     const ticketIds = new Set<string>();
@@ -153,16 +185,16 @@ export default function TicketsPage() {
 
   useEffect(() => {
     if (!authLoading) {
-      loadTickets();
+      loadTickets(ticketPage);
     }
-  }, [authLoading]);
+  }, [authLoading, filterStatus, searchTerm, ticketPage, loadTickets]);
 
   useEffect(() => {
     if (!user?.ch || authLoading) return;
 
     const intervalId = setInterval(() => {
       if (document.visibilityState === "visible") {
-        loadTickets();
+        loadTickets(ticketPage);
         fetchNotifications();
         setLastFetchTime(new Date());
       }
@@ -170,14 +202,14 @@ export default function TicketsPage() {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        loadTickets();
+        loadTickets(ticketPage);
         fetchNotifications();
         setLastFetchTime(new Date());
       }
     };
 
     const handleWindowFocus = () => {
-      loadTickets();
+      loadTickets(ticketPage);
       fetchNotifications();
       setLastFetchTime(new Date());
     };
@@ -190,23 +222,19 @@ export default function TicketsPage() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("focus", handleWindowFocus);
     };
-  }, [user?.ch, authLoading]);
+  }, [
+    user?.ch,
+    authLoading,
+    ticketPage,
+    filterStatus,
+    searchTerm,
+    loadTickets,
+    fetchNotifications,
+  ]);
 
-  const loadTickets = async () => {
-    try {
-      setLoading(true);
-      const response = await api.getTickets("mine");
-      const userTickets = response.tickets || [];
-
-      setTickets(userTickets);
-    } catch {
-      toast.error("Error al cargar tickets");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredTickets = tickets.filter((ticket) => {
+  const filteredTickets = usesServerQuery
+    ? tickets
+    : tickets.filter((ticket) => {
     const matchesSearch =
       ticket.ticket_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ticket.motivo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -217,7 +245,17 @@ export default function TicketsPage() {
       filterStatus === "all" || ticket.estado === filterStatus;
 
     return matchesSearch && matchesFilter;
-  });
+    });
+
+  const handleFilterChange = (status: string) => {
+    setFilterStatus(status);
+    setTicketPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setTicketPage(1);
+  };
 
   const handleTicketClick = async (ticketId: string) => {
     const notificationsForTicket = notifications.filter(
@@ -334,7 +372,7 @@ export default function TicketsPage() {
                   type="text"
                   placeholder="Buscar por ID, motivo o descripción..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-white placeholder-white/30 focus:outline-none focus:border-primary-500 transition-colors"
                 />
               </div>
@@ -345,7 +383,7 @@ export default function TicketsPage() {
                 (status) => (
                   <button
                     key={status}
-                    onClick={() => setFilterStatus(status)}
+                    onClick={() => handleFilterChange(status)}
                     className={`px-4 py-2 rounded-lg capitalize transition-all duration-200 ${
                       filterStatus === status
                         ? "bg-primary-500 text-white"
@@ -489,7 +527,39 @@ export default function TicketsPage() {
 
           {filteredTickets.length > 0 && (
             <div className="text-center text-white/40 text-sm mt-4">
-              Mostrando {filteredTickets.length} de {tickets.length} tickets
+              {pagination
+                ? `Mostrando ${(pagination.page - 1) * pagination.pageSize + 1}-${Math.min(pagination.page * pagination.pageSize, pagination.total)} de ${pagination.total} tickets`
+                : `Mostrando ${filteredTickets.length} de ${tickets.length} tickets`}
+            </div>
+          )}
+
+          {pagination && pagination.totalPages > 1 && (
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setTicketPage((page) => Math.max(1, page - 1))}
+                disabled={pagination.page <= 1 || loading}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-700/60 px-4 py-2 text-sm text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </button>
+              <span className="text-sm text-white/60">
+                Página {pagination.page} de {pagination.totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setTicketPage((page) =>
+                    Math.min(pagination.totalPages, page + 1),
+                  )
+                }
+                disabled={pagination.page >= pagination.totalPages || loading}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-700/60 px-4 py-2 text-sm text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
           )}
         </main>

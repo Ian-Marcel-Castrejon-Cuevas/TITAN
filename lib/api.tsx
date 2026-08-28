@@ -97,8 +97,23 @@ class API {
 
   async getTickets(
     scope: "mine" | "all" = "all",
-  ): Promise<{ success: boolean; tickets: Ticket[] }> {
-    return this.request(`/api/tickets?scope=${scope}`);
+    options: {
+      status?: string;
+      search?: string;
+      page?: number;
+      pageSize?: number;
+    } = {},
+  ): Promise<{
+    success: boolean;
+    tickets: Ticket[];
+    pagination?: { page: number; pageSize: number; total: number; totalPages: number };
+  }> {
+    const params = new URLSearchParams({ scope });
+    if (options.status && options.status !== "all") params.set("status", options.status);
+    if (options.search) params.set("search", options.search);
+    if (options.page) params.set("page", String(options.page));
+    if (options.pageSize) params.set("pageSize", String(options.pageSize));
+    return this.request(`/api/tickets?${params.toString()}`);
   }
 
   async getTicket(
