@@ -10,8 +10,6 @@ export function Footer() {
           <div className="flex items-center gap-1 flex-wrap justify-center">
             <span className="text-white/40 text-sm">Creado por</span>
             <span className="text-primary-400 font-medium">IAN</span>
-            <span className="text-white/40 text-sm">&</span>
-            <span className="text-primary-400 font-medium">MIKE</span>
           </div>
           <span className="text-white/30 text-sm hidden sm:block">•</span>
           <p className="text-white/40 text-sm">

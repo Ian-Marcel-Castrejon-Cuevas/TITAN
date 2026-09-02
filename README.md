@@ -1,221 +1,221 @@
-# TITAN 🚀
+# TITAN
 
-**TITAN** is a robust web application built with Next.js, designed to provide a comprehensive platform for managing [**TODO: Briefly describe the core purpose of TITAN here. For example, "employee data, security information, and operational tasks" or "ticketing and support requests"**]. It leverages a modern tech stack to deliver a performant, secure, and user-friendly experience.
+## Visión general
 
-This project integrates a frontend developed in TypeScript/React with a backend service written in Python, enabling seamless data exchange and complex logic execution.
+TITAN es una plataforma empresarial orientada a la operación interna, atención de incidencias y administración de accesos en entornos corporativos. La solución integra un frontend moderno basado en Next.js con un backend en Python para manejar autenticación, consultas de datos, validación de usuarios y automatización de procesos críticos.
 
-## Features ⚡
+Su propósito es ofrecer una experiencia robusta, segura y operativa para la gestión de tickets, soporte técnico, paneles de control y servicios conectados a infraestructura empresarial.
 
-*   **Secure Authentication**: User authentication and authorization to protect sensitive data.
-*   **Dynamic Dashboard**: An interactive dashboard providing key insights and overview of [**TODO: Specify what the dashboard displays**].
-*   **Ticket Management**: System for creating, tracking, and resolving support or operational tickets.
-*   **User Registration**: Secure process for new user onboarding.
-*   **Data Visualization**: Utilizes Recharts for displaying data graphically.
-*   **Real-time Notifications**: Provides immediate feedback and updates to users.
-*   **API Integration**: Connects with a Python-based backend for comprehensive functionality.
-*   **Internationalization**: Supports multiple languages [**TODO: Confirm if this is implemented or a future feature**].
-*   **[Add other key features here]**
+## Objetivos del proyecto
 
-## Tech Stack 📦
+- Centralizar la gestión operativa y de soporte interno
+- Mejorar la trazabilidad de tickets y eventos del negocio
+- Optimizar procesos de autenticación y control de acceso
+- Integrar datos de sistemas internos con interfaces modernas y escalables
+- Proveer una capa de administración eficiente para equipos de soporte y operación
 
-*   **Frontend**:
-    *   Next.js
-    *   TypeScript
-    *   React
-    *   React Query (@tanstack/react-query) for state management
-    *   Tailwind CSS for styling
-    *   Lucide React for icons
-    *   React Hot Toast for notifications
-    *   Axios for HTTP requests
-    *   Crypto-JS for client-side encryption [**TODO: Confirm usage of Crypto-JS on the frontend**]
-*   **Backend (TITAN-backend)**:
-    *   Python
-    *   [**TODO: Specify Python web framework if any, e.g., Flask, FastAPI**]
-    *   MSSQL, PostgreSQL (pg) for database interactions
-    *   Bcryptjs for password hashing
-    *   jsonwebtoken for token generation
-    *   SSH2 for secure remote connections
-    *   Twofish for encryption [**TODO: Confirm usage of Twofish on the backend**]
-    *   XLSX for Excel file processing
-*   **Development Tools**:
-    *   ESLint for code linting
-    *   Prettier for code formatting
-    *   TypeScript for type checking
+## Arquitectura
 
-## Installation 🛠️
+### Frontend
 
-Follow these steps to set up and run `TITAN` locally:
+- Next.js 15
+- React 18
+- TypeScript
+- Tailwind CSS
+- TanStack Query
+- Axios
+- Recharts
+- React Hot Toast
+- Lucide React
 
-### Prerequisites
+### Backend
 
-*   Node.js (v18 or later recommended)
-*   npm or yarn
-*   Python (v3.10 or later recommended)
-*   [**TODO: Specify database requirements, e.g., MSSQL Server, PostgreSQL instance details**]
-*   [**TODO: Specify any other system dependencies**]
+- Python 3.10
+- Flask
+- PostgreSQL
+- SQL Server
+- psycopg2
+- PyJWT
+- bcryptjs
+- Twofish
+- ssh2
+- mssql
+- xlsx
 
-### Frontend Setup
+### Patrones de diseño
 
-1.  **Clone the repository**:
-    ```bash
-    git clone [repository_url]
-    cd TITAN
-    ```
+- Enrutamiento del frontend con App Router de Next.js
+- APIs internas para lógica de negocio y consumo de datos
+- Backend dedicado para autenticación, validaciones y procesos críticos
+- Configuración por variables de entorno para mantener seguridad y portabilidad
+- Integración con infraestructura remota mediante SSH
 
-2.  **Install frontend dependencies**:
-    ```bash
-    npm install
-    # or
-    yarn install
-    ```
+## Estado funcional
 
-3.  **Configure environment variables**:
-    Create a `.env.local` file in the root directory and add your environment variables. Refer to the **Configuration** section for details.
+El proyecto contempla módulos para:
 
-### Backend Setup
+- autenticación y control de sesiones
+- gestión de tickets y soporte
+- dashboard operativo
+- reportes y visualización de datos
+- registro y consulta de usuarios
+- notificaciones y comunicaciones internas
+- integración con servicios remotos y bases de datos
 
-1.  **Navigate to the backend directory**:
-    ```bash
-    cd TITAN-backend
-    ```
+## Requisitos del entorno
 
-2.  **Create and activate a virtual environment**:
-    ```bash
-    python -m venv venv310
-    # On Windows
-    .\venv310\Scripts\activate
-    # On macOS/Linux
-    source venv310/bin/activate
-    ```
+Antes de levantar el sistema, asegúrate de contar con:
 
-3.  **Install backend dependencies**:
-    ```bash
-    pip install -r requirements.txt # Assuming a requirements.txt exists, otherwise list packages
-    ```
+- Node.js 18 o superior
+- npm o yarn
+- Python 3.10 o superior
+- PostgreSQL o SQL Server configurado
+- Credenciales para servicios SSH y entorno local
 
-4.  **Configure backend environment variables**:
-    Refer to the backend's documentation or create a `.env` file in the `TITAN-backend` directory for necessary configurations.
+## Instalación
 
-### Running the Application
+### 1. Clonar el repositorio
 
-1.  **Start the backend server**:
-    *   Navigate to the `TITAN-backend` directory.
-    *   Ensure your virtual environment is activated.
-    *   Run the backend application:
-        ```bash
-        python app.py # Or the command to start your backend
-        ```
-    *   [**TODO: Specify the port the backend runs on**]
-
-2.  **Start the frontend development server**:
-    *   In a separate terminal, navigate back to the root `TITAN` directory.
-    *   Run the Next.js development server:
-        ```bash
-        npm run dev
-        # or
-        yarn dev
-        ```
-
-3.  **Access the application**:
-    Open your web browser and navigate to `http://localhost:3000` (or the port specified by the Next.js development server).
-
-## Usage 🚀
-
-Once the application is running, you can:
-
-1.  **Login**: Navigate to the `/login` route and enter your credentials.
-2.  **Register**: New users can register via the `/registro` route.
-3.  **Dashboard**: Access the main dashboard at `/dashboard` after logging in.
-4.  **Tickets**: Manage tickets at `/tickets`.
-5.  **Support**: Access support features at `/soporte`.
-6.  **[Add other usage examples here]**
-
-## Project Structure 📂
-
-```
-.
-├── AGENTS.md                 # Information about agents
-├── app/                      # Next.js App Router directory
-│   ├── api/                  # API routes
-│   ├── dashboard/            # Dashboard related pages
-│   ├── favicon.ico
-│   ├── globals.css           # Global styles
-│   ├── layout.tsx            # Root layout
-│   ├── login/                # Login page
-│   ├── page.tsx              # Home page
-│   ├── registro/             # Registration page
-│   ├── soporte/              # Support pages
-│   └── tickets/              # Ticket management pages
-├── TITAN-backend/           # Python backend service
-│   ├── app.py                # Main backend application entry point
-│   ├── venv310/              # Python virtual environment
-│   └── verificar_conexion_remota.py # Script for remote connection verification
-├── components/               # Reusable UI components
-│   ├── layout/
-│   ├── ProfilePhoto.tsx
-│   ├── SecurityWrapper.tsx
-│   └── ui/                   # UI primitives/libraries
-├── context/                  # React Context providers
-│   └── NotificationContext.tsx
-├── eslint.config.mjs         # ESLint configuration
-├── hooks/                    # Custom React hooks
-│   ├── useAuth.tsx
-│   ├── useDashboardNotifications.ts
-│   ├── useEmpleadoFoto.tsx
-│   ├── useNotification.ts
-│   ├── useNotifications.ts
-│   └── useTickets.tsx
-├── lib/                      # Utility functions and helper modules
-├── middleware.ts             # Next.js middleware for routing and auth
-├── next-env.d.ts             # Next.js TypeScript definitions
-├── next.config.ts            # Next.js configuration
-├── nginx-1.30.2/             # Nginx configuration files (likely for deployment)
-│   ├── conf/
-│   ├── contrib/
-│   ├── docs/
-│   ├── html/
-│   ├── logs/
-│   └── nginx.exe
-├── package-lock.json
-├── package.json              # Frontend package manager configuration
-├── postcss.config.mjs        # PostCSS configuration
-├── public/                   # Static assets
-├── README.md                 # This file
-├── tailwind.config.js        # Tailwind CSS configuration
-└── tsconfig.json             # TypeScript configuration
+```bash
+git clone <url-del-repositorio>
+cd TITAN
 ```
 
-## Configuration ⚙️
+### 2. Instalar dependencias del frontend
 
-The application relies on environment variables for configuration. Create a `.env.local` file in the root directory of the project with the following variables (and adjust as needed for your backend):
+```bash
+npm install
+```
+
+### 3. Configurar variables de entorno
+
+Copia el archivo [.env.example](.env.example) a un archivo local real como `.env.local` o `.env` y completa los valores requeridos para tu entorno.
 
 ```env
-# Frontend Configuration
-NEXT_PUBLIC_API_URL="http://localhost:[backend_port]/api" # URL to your backend API
+# PostgreSQL
+PG_HOST=
+PG_PORT=5432
+PG_USER=
+PG_PASSWORD=
+PG_DATABASE=
 
-# Backend Configuration (example, adjust based on your backend's needs)
-DATABASE_SERVER="your_db_server"
-DATABASE_USER="your_db_user"
-DATABASE_PASSWORD="your_db_password"
-DATABASE_NAME="your_db_name"
-JWT_SECRET="your_super_secret_key_for_jwt"
-# Add other backend-specific environment variables here
+# Backend y aplicación
+NEXT_PUBLIC_BACKEND_URL=
+NEXT_PUBLIC_APP_URL=
+JWT_SECRET=
+SESSION_SECRET=
+
+# SSH / servicios remotos
+SSH_HOST=
+SSH_USER=
+SSH_PASS=
+SSH_PORT=22
+
+# SQL Server
+SQL_USER=
+SQL_PASSWORD=
+SQL_SERVER=
+SQL_PORT=1433
+SQL_DATABASE=
+SQL_ENCRYPT=false
+SQL_TRUST_SERVER_CERTIFICATE=true
 ```
 
-**Note**: Ensure your Python backend (`TITAN-backend`) is also configured to read its environment variables, potentially using a `.env` file within its directory or other configuration methods.
+> Nunca guardes credenciales reales en el repositorio. Usa variables de entorno locales o un gestor seguro de secretos.
 
-## Contributing 🤝
+### 4. Ejecutar el backend
 
-We welcome contributions to `TITAN`! If you'd like to contribute, please:
+```bash
+cd cadnux-backend
+source venv310/bin/activate
+python app.py
+```
 
-1.  Fork the repository.
-2.  Create a new branch for your feature or bug fix (`git checkout -b feature/your-feature-name`).
-3.  Make your changes and commit them (`git commit -m 'Add some feature'`).
-4.  Push to the branch (`git push origin feature/your-feature-name`).
-5.  Open a Pull Request.
+### 5. Ejecutar el frontend
 
-Please ensure your code adheres to the project's coding standards and includes appropriate tests.
+```bash
+npm run dev
+```
 
-## License 📜
+La aplicación estará disponible en:
 
-This project is licensed under the **[TODO: Specify your license here, e.g., MIT License]** License. See the [LICENSE.md](LICENSE.md) file for more details.
+```text
+http://localhost:3000
+```
+
+## Módulos operativos
+
+### Panel principal
+
+- Visualización de indicadores operativos
+- Consulta rápida de información crítica para usuarios y administradores
+
+### Gestión de tickets
+
+- Creación, seguimiento y cierre de incidencias
+- Historial de comentarios y cambios de estado
+- Generación de reportes operativos
+
+### Soporte y administración
+
+- Control de acceso por perfil y departamento
+- Administración de procesos internos
+- Módulo de atención para equipos de soporte
+
+### Integración con infraestructura
+
+- Conexiones SSH para reinicio y control remoto de servicios
+- Consultas a bases de datos para validación de datos operativos
+- Integración con procesos automáticos del entorno empresarial
+
+## Estructura del repositorio
+
+```text
+.
+├── AGENTS.md
+├── app/
+│   ├── api/
+│   ├── dashboard/
+│   ├── login/
+│   ├── page.tsx
+│   ├── registro/
+│   ├── soporte/
+│   └── tickets/
+├── cadnux-backend/
+│   ├── app.py
+│   ├── venv310/
+│   └── verificar_conexion_remota.py
+├── components/
+├── context/
+├── data/
+├── docs/
+├── hooks/
+├── lib/
+├── middleware.ts
+├── public/
+├── .env.example
+├── .gitignore
+├── eslint.config.mjs
+├── next.config.ts
+├── package.json
+├── postcss.config.mjs
+├── README.md
+├── tailwind.config.js
+├── tsconfig.json
+├── nginx-1.30.2/
+└── node_modules/
+```
+
+## Seguridad y buenas prácticas
+
+- No guardar secretos ni credenciales reales en el repositorio
+- Mantener archivos `.env` fuera del control de versiones
+- Usar variables de entorno para toda configuración sensible
+- Revisar periódicamente accesos SSH, credenciales y endpoints críticos
+- Evitar depender de valores de desarrollo en entornos de producción
+
+## Licencia
+
+© 2026 Ian Marcel Castrejon Cuevas. Todos los derechos reservados.
+
+Este proyecto y su código fuente son propiedad de Ian Marcel Castrejon Cuevas. Queda prohibida la reproducción, distribución, modificación o utilización del código, total o parcialmente, sin autorización previa del propietario.
