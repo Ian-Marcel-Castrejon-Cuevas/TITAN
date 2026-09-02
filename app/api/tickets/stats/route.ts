@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSqlConnection } from "@/lib/db_sqlserver";
+import { getDemoStats, isDemoMode } from "@/lib/demo-store";
 
 interface EstadoRow {
   estado: string;
@@ -21,6 +22,9 @@ export async function GET() {
    */
   
   try {
+    if (isDemoMode()) {
+      return NextResponse.json({ success: true, stats: getDemoStats() });
+    }
     const pool = await getSqlConnection();
 
     const totalResult = await pool

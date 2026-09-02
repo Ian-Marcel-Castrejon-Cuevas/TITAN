@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSqlConnection, generateTicketId } from "@/lib/db_sqlserver";
 import { getRequestUser } from "@/lib/request-auth";
 import { logError } from "@/lib/error-log";
+import { createDemoTicket, isDemoMode, listDemoTickets } from "@/lib/demo-store";
 import {
   acquireCarvenOperation,
   getCarvenOperation,
@@ -49,6 +50,24 @@ export async function GET(request: NextRequest) {
         { success: false, error: "No tienes permiso para consultar todos los tickets" },
         { status: 403 },
       );
+    }
+
+    if (isDemoMode()) {
+      const tickets = listDemoTickets(user, { scope, status, search });
+      if (isPaginated) {
+        const start = (page - 1) * pageSize;
+        return NextResponse.json({
+          success: true,
+          tickets: tickets.slice(start, start + pageSize),
+          pagination: {
+            page,
+            pageSize,
+            total: tickets.length,
+            totalPages: Math.ceil(tickets.length / pageSize),
+          },
+        });
+      }
+      return NextResponse.json({ success: true, tickets });
     }
 
     const pool = await getSqlConnection();
@@ -201,6 +220,13 @@ export async function POST(request: NextRequest) {
       "Levantar carven 3",
     ].includes(data.motivo);
     const estadoInicial = isCarvenOperation ? "cerrado" : "abierto";
+
+    if (isDemoMode()) {
+      return NextResponse.json({
+        success: true,
+        ticketCode: createDemoTicket(data, user),
+      });
+    }
 
     const pool = await getSqlConnection();
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import sql from "mssql";
+import { isDemoMode } from "@/lib/demo-store";
 
 /**
  * Obtiene notificaciones filtradas por `user_ch` o `departamento`.
@@ -20,6 +21,7 @@ import sql from "mssql";
  */
 export async function GET(req: NextRequest) {
   try {
+    if (isDemoMode()) return NextResponse.json({ success: true, notifications: [] });
     const { searchParams } = new URL(req.url);
     const userCh = searchParams.get("user_ch");
     const departamento = searchParams.get("departamento");
@@ -84,6 +86,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
+    if (isDemoMode()) return NextResponse.json({ success: true, message: "Notificación creada correctamente" });
     const { user_ch, departamento, ticket_id, type, message, created_by } =
       await req.json();
 
@@ -140,6 +143,7 @@ export async function POST(req: NextRequest) {
  */
 export async function PUT(req: NextRequest) {
   try {
+    if (isDemoMode()) return NextResponse.json({ success: true, message: "Notificaciones actualizadas correctamente" });
     const { notification_ids, mark_all } = await req.json();
 
     const pool = await getDb();
@@ -197,6 +201,7 @@ export async function PUT(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
+    if (isDemoMode()) return NextResponse.json({ success: true, message: "Notificación eliminada correctamente" });
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 

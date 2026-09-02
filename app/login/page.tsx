@@ -13,6 +13,8 @@ export default function LoginPage() {
   const { login } = useAuth();
 
   const specialUsers = [
+    "DEMO01",
+    "DEMOADMIN",
     "MVELAZQUEZ3",
     "FGONZALEZ",
     "JALONSO",
@@ -123,6 +125,11 @@ export default function LoginPage() {
     setCh(value);
   };
 
+  const fillDemoCredentials = () => {
+    setCh("DEMO01");
+    setPassword("demo1234");
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
@@ -218,6 +225,13 @@ export default function LoginPage() {
                     <span>Ingresar al Sistema</span>
                   </>
                 )}
+              </button>
+              <button
+                type="button"
+                onClick={fillDemoCredentials}
+                className="w-full text-sm text-primary-300 transition-colors hover:text-primary-200"
+              >
+                Usar acceso de demostración
               </button>
             </form>
           </div>

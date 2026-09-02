@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSession } from "@/lib/session-store";
+import { authenticateDemoUser, isDemoMode } from "@/lib/demo-store";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -22,18 +23,45 @@ export async function POST(request: NextRequest) {
    * - Maneja credenciales sensibles; asegurar transporte TLS y no loguear contraseñas en producción.
    */
   try {
-    if (!BACKEND_URL) {
-      return NextResponse.json(
-        { error: "NEXT_PUBLIC_BACKEND_URL no está configurado" },
-        { status: 503 },
-      );
-    }
     const { usuario_ch, password } = await request.json();
 
     if (!usuario_ch || !password) {
       return NextResponse.json(
         { error: "Usuario y contraseña son requeridos" },
         { status: 400 },
+      );
+    }
+
+    if (isDemoMode()) {
+      const demoUser = authenticateDemoUser(usuario_ch, password);
+      if (!demoUser) {
+        return NextResponse.json({ error: "Usuario o contraseña incorrectos" }, { status: 401 });
+      }
+
+      const sessionId = createSession(demoUser);
+      const result = NextResponse.json({
+        success: true,
+        token: demoUser.token,
+        usuario_ch: demoUser.ch,
+        nombre_completo: demoUser.nombre,
+        departamento: demoUser.departamento,
+        es_admin: demoUser.es_admin,
+        llave: demoUser.llave,
+      });
+      result.cookies.set("titan_session", sessionId, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: request.nextUrl.protocol === "https:",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      return result;
+    }
+
+    if (!BACKEND_URL) {
+      return NextResponse.json(
+        { error: "NEXT_PUBLIC_BACKEND_URL no está configurado" },
+        { status: 503 },
       );
     }
 

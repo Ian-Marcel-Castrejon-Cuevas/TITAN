@@ -1,0 +1,20 @@
+[
+  {
+    "ch": "DEMO01",
+    "nombre": "Mariana Demo",
+    "departamento": 9,
+    "es_admin": false,
+    "password": "demo1234",
+    "token": "demo-token-user",
+    "llave": "demo-key-user"
+  },
+  {
+    "ch": "DEMOADMIN",
+    "nombre": "Administrador Demo",
+    "departamento": 9,
+    "es_admin": true,
+    "password": "demo1234",
+    "token": "demo-token-admin",
+    "llave": "demo-key-admin"
+  }
+]

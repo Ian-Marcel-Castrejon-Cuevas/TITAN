@@ -131,6 +131,23 @@ source venv310/bin/activate
 python app.py
 ```
 
+### Demo local sin bases de datos
+
+Para mostrar TITAN sin iniciar Flask, PostgreSQL o SQL Server, activa el modo demo en `.env.local`:
+
+```env
+TITAN_DEMO_MODE=true
+```
+
+Después inicia solo Next.js con `npm run dev`. En `/login`, usa el acceso de demostración o estas credenciales:
+
+```text
+Usuario: DEMO01
+Contraseña: demo1234
+```
+
+La demo carga un ticket abierto y dos cerrados desde [data/demo-tickets.json](data/demo-tickets.json). Permite consultar el detalle, agregar notas y crear tickets; los cambios se guardan en ese mismo archivo JSON. El usuario `DEMOADMIN` permite mostrar el panel administrativo. Desactiva `TITAN_DEMO_MODE` para volver al flujo real.
+
 ### 5. Ejecutar el frontend
 
 ```bash

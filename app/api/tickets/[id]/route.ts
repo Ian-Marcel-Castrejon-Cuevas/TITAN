@@ -3,6 +3,12 @@ import { getSqlConnection } from "@/lib/db_sqlserver";
 import { getRequestUser } from "@/lib/request-auth";
 import { hasTicketLock, releaseTicketLock } from "@/lib/ticket-locks";
 import { logError } from "@/lib/error-log";
+import {
+  deleteDemoTicket,
+  getDemoTicket,
+  isDemoMode,
+  updateDemoTicket,
+} from "@/lib/demo-store";
 
 export async function GET(
   request: NextRequest,
@@ -30,6 +36,14 @@ export async function GET(
     const user = getRequestUser(request);
     if (!user) {
       return NextResponse.json({ success: false, error: "Sesión requerida" }, { status: 401 });
+    }
+
+    if (isDemoMode()) {
+      const demoTicket = getDemoTicket(ticketId, user);
+      if (!demoTicket) {
+        return NextResponse.json({ success: false, error: "Ticket no encontrado" }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, ...demoTicket });
     }
 
     const pool = await getSqlConnection();
@@ -131,6 +145,15 @@ export async function PUT(
 
     const usuario = user.nombre || user.ch;
     const owner = user.ch;
+
+    if (isDemoMode()) {
+      if (!estado && plataforma === undefined && motivo === undefined) {
+        return NextResponse.json({ success: false, error: "No se especifico que actualizar" }, { status: 400 });
+      }
+      const ticket = updateDemoTicket(ticketId, user, { estado, plataforma, motivo });
+      if (!ticket) return NextResponse.json({ success: false, error: "Ticket no encontrado" }, { status: 404 });
+      return NextResponse.json({ success: true, ticket });
+    }
 
     if (user.es_admin && !hasTicketLock(ticketId, user.ch)) {
       return NextResponse.json(
@@ -331,6 +354,13 @@ export async function DELETE(
     }
 
     const usuario = user.nombre || user.ch;
+
+    if (isDemoMode()) {
+      const result = deleteDemoTicket(ticketId, user);
+      if (result === "not-found") return NextResponse.json({ success: false, error: "Ticket no encontrado" }, { status: 404 });
+      if (result === "closed") return NextResponse.json({ success: false, error: "No se pueden eliminar tickets cerrados" }, { status: 403 });
+      return NextResponse.json({ success: true, message: "Ticket eliminado correctamente" });
+    }
 
     const pool = await getSqlConnection();
 

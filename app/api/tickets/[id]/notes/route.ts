@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSqlConnection } from "@/lib/db_sqlserver";
 import { logError } from "@/lib/error-log";
+import { addDemoNote, isDemoMode } from "@/lib/demo-store";
+import { getRequestUser } from "@/lib/request-auth";
 
 export async function POST(
   request: NextRequest,
@@ -26,6 +28,18 @@ export async function POST(
   try {
     const { id: ticketId } = await params;
     const { content, note_type, tags } = await request.json();
+
+    const user = getRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Sesión requerida" }, { status: 401 });
+    }
+
+    if (isDemoMode()) {
+      if (!content || !addDemoNote(ticketId, user, { content, note_type, tags })) {
+        return NextResponse.json({ success: false, error: "Ticket no encontrado" }, { status: 404 });
+      }
+      return NextResponse.json({ success: true });
+    }
 
     let usuario = "Usuario";
     const authHeader = request.headers.get("authorization");

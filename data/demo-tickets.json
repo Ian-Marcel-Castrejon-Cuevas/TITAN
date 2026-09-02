@@ -1,0 +1,86 @@
+[
+  {
+    "ticket_id": "DEMO-1001",
+    "ch": "DEMO01",
+    "nombre": "Mariana Demo",
+    "nodo": "NODO-DEMO",
+    "cartera": "Demostración",
+    "plataforma": "Portal TITAN",
+    "motivo": "Acceso al portal",
+    "puesto": "Analista",
+    "descripcion": "No puedo acceder al módulo de reportes desde mi estación de trabajo.",
+    "estado": "abierto",
+    "fecha": "2026-09-01T15:30:00.000Z",
+    "updated_at": "2026-09-01T15:30:00.000Z",
+    "creado_por": "DEMO01",
+    "notes": [
+      {
+        "id": 1,
+        "ticket_id": "DEMO-1001",
+        "note_type": "creacion",
+        "content": "Ticket creado para la demostración.",
+        "author": "Sistema",
+        "timestamp": "2026-09-01T15:30:00.000Z",
+        "tags": "creado,sistema"
+      }
+    ]
+  },
+  {
+    "ticket_id": "DEMO-1002",
+    "ch": "DEMO01",
+    "nombre": "Mariana Demo",
+    "nodo": "NODO-DEMO",
+    "cartera": "Demostración",
+    "plataforma": "Correo",
+    "motivo": "Restablecimiento de contraseña",
+    "puesto": "Analista",
+    "descripcion": "La contraseña fue restablecida y el acceso quedó confirmado.",
+    "estado": "cerrado",
+    "fecha": "2026-08-29T11:00:00.000Z",
+    "updated_at": "2026-08-29T13:00:00.000Z",
+    "fecha_cerrado": "2026-08-29T13:00:00.000Z",
+    "creado_por": "DEMO01",
+    "atendido_por": "Soporte Demo",
+    "notes": [
+      {
+        "id": 2,
+        "ticket_id": "DEMO-1002",
+        "note_type": "cambio_estado",
+        "content": "Estado cambiado a: cerrado",
+        "author": "Soporte Demo",
+        "timestamp": "2026-08-29T13:00:00.000Z",
+        "tags": "estado"
+      }
+    ]
+  },
+  {
+    "ticket_id": "DEMO-1003",
+    "ch": "DEMO01",
+    "nombre": "Mariana Demo",
+    "nodo": "NODO-DEMO",
+    "cartera": "Demostración",
+    "plataforma": "VPN",
+    "motivo": "Conectividad",
+    "puesto": "Analista",
+    "descripcion": "La conexión VPN fue validada y el incidente quedó resuelto.",
+    "estado": "cerrado",
+    "fecha": "2026-08-27T09:15:00.000Z",
+    "updated_at": "2026-08-27T10:45:00.000Z",
+    "fecha_resuelto": "2026-08-27T10:30:00.000Z",
+    "fecha_cerrado": "2026-08-27T10:45:00.000Z",
+    "creado_por": "DEMO01",
+    "resuelto_por": "Soporte Demo",
+    "atendido_por": "Soporte Demo",
+    "notes": [
+      {
+        "id": 3,
+        "ticket_id": "DEMO-1003",
+        "note_type": "cambio_estado",
+        "content": "Estado cambiado a: cerrado",
+        "author": "Soporte Demo",
+        "timestamp": "2026-08-27T10:45:00.000Z",
+        "tags": "estado"
+      }
+    ]
+  }
+]

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSqlConnection } from "@/lib/db_sqlserver";
+import { getDemoReport, isDemoMode } from "@/lib/demo-store";
 
 export async function POST(request: NextRequest) {
   /**
@@ -20,6 +21,11 @@ export async function POST(request: NextRequest) {
    */
   try {
     const { fechaInicio, fechaFin } = await request.json();
+
+    if (isDemoMode()) {
+      const tickets = getDemoReport(fechaInicio, fechaFin);
+      return NextResponse.json({ success: true, tickets, total: tickets.length });
+    }
 
     const pool = await getSqlConnection();
 
